@@ -44,23 +44,19 @@ func (c *Claims) VerifyJWT(token string) error {
 	jwtToken, err := jwt.ParseWithClaims(token, c, func(t *jwt.Token) (any, error) {
 		return []byte(jwtSecret), nil
 	})
-	log.Println("checkpoint 1")
 	if err != nil {
 		return err
 	}
 
-	log.Println("checkpoint 2")
 	if !jwtToken.Valid {
 		return jwt.ErrTokenExpired
 	}
 
-	log.Println("checkpoint 3")
 	iss, err := jwtToken.Claims.GetIssuer()
 	if err != nil {
 		return err
 	}
 
-	log.Println("checkpoint 4")
 	if iss != os.Getenv("JWT_ISSUER") {
 		return jwt.ErrTokenInvalidIssuer
 	}
