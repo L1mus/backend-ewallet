@@ -1,0 +1,50 @@
+package controller
+
+import (
+	"fmt"
+	"log"
+	"net/http"
+
+	"github.com/L1mus/backend-ewallet/internal/dto"
+	"github.com/L1mus/backend-ewallet/internal/service"
+	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
+)
+
+type AuthController struct {
+	authService *service.AuthService
+}
+
+func NewAuthController(authService *service.AuthService) *AuthController {
+	return &AuthController{
+		authService: authService,
+	}
+}
+
+func (c AuthController) Register(ctx *gin.Context) {
+	var body dto.RegisterRequest
+	if err := ctx.ShouldBindWith(&body, binding.JSON); err != nil {
+		log.Println("Error : ", err.Error())
+		ctx.JSON(http.StatusBadRequest, dto.ResponseError{
+			Status:  "Error",
+			Message: "Bad Request",
+			Error:   err.Error(),
+		})
+		return
+	}
+	response, err := c.authService.Register(ctx.Request.Context(), body)
+	if err != nil {
+		log.Println("Error: ", err.Error())
+		ctx.JSON(http.StatusBadRequest, dto.ResponseError{
+			Status:  "Error",
+			Message: "Bad Request",
+			Error:   err.Error(),
+		})
+		return
+	}
+	ctx.JSON(http.StatusCreated, dto.ResponseSuccess{
+		Status:  "Success",
+		Message: fmt.Sprintf("Register Complete, Welcome %s", response.FullName),
+		Data:    response,
+	})
+}
