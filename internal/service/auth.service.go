@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"regexp"
 
 	"github.com/L1mus/backend-ewallet/internal/appError"
 	"github.com/L1mus/backend-ewallet/internal/dto"
@@ -23,10 +22,13 @@ func NewAuthService(authRepository *repository.AuthRepository) *AuthService {
 func (s *AuthService) Register(ctx context.Context, req dto.RegisterRequest) (dto.RegisterResponse, error) {
 	var hc pkg.HashConfig
 	hc.UseRecommended()
-	emailRegex := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
-	isMatched, _ := regexp.MatchString(emailRegex, req.Email)
-	if !isMatched {
-		return dto.RegisterResponse{}, appError.InvalidEmailFormat
+
+	exists, err := s.authRepository.CheckEmailExist(ctx, req.Email)
+	if err != nil {
+		return dto.RegisterResponse{}, err
+	}
+	if exists {
+		return dto.RegisterResponse{}, appError.EmailAlreadyExists
 	}
 
 	hashPassword := hc.GenHash(req.Password)
