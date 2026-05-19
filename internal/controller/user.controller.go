@@ -1,12 +1,9 @@
 package controller
 
 import (
-	"fmt"
-	"net/http"
-
-	"github.com/L1mus/backend-ewallet/internal/dto"
 	"github.com/L1mus/backend-ewallet/internal/service"
 	"github.com/L1mus/backend-ewallet/pkg"
+	"github.com/L1mus/backend-ewallet/response"
 	"github.com/gin-gonic/gin"
 )
 
@@ -35,20 +32,10 @@ func NewUserController(userService *service.UserService) *UserController {
 func (c *UserController) GetUserProfile(ctx *gin.Context) {
 	token, _ := ctx.Get("claims")
 	claims := token.(pkg.Claims)
-	fmt.Println(token)
-	fmt.Println("Claims id", claims.Id)
-	response, err := c.userService.GetUserProfile(ctx.Request.Context(), claims.Id)
+	res, err := c.userService.GetUserProfile(ctx.Request.Context(), claims.Id)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, dto.ResponseError{
-			Status:  "error",
-			Message: err.Error(),
-			Error:   "internal server error",
-		})
+		response.Error(ctx, 500, err.Error())
 		return
 	}
-	ctx.JSON(http.StatusOK, dto.ResponseSuccess{
-		Status:  "success",
-		Message: "Get data success",
-		Data:    response,
-	})
+	response.Success(ctx, 200, "Get data success", res)
 }
