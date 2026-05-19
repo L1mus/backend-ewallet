@@ -23,7 +23,19 @@ func NewAuthController(authService *service.AuthService) *AuthController {
 	}
 }
 
-func (c AuthController) Register(ctx *gin.Context) {
+// Register
+//
+// @Summary      Register account
+// @Description  create user account
+// @Tags         Auth
+// @Accept       JSON
+// @Produce      JSON
+// @Param		 body	body	dto.RegisterRequest true "Register Payload"
+// @Success      201  {object}  dto.RegisterResponse
+// @Failure      400  {object}  dto.ResponseError
+// @Failure      500  {object}  dto.ResponseError
+// @Router       /auth/register [post]
+func (c *AuthController) Register(ctx *gin.Context) {
 	var body dto.RegisterRequest
 	if err := ctx.ShouldBindWith(&body, binding.JSON); err != nil {
 		log.Println("Error : ", err.Error())
