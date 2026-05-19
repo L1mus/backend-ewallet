@@ -11,7 +11,7 @@ import (
 
 func InitRouter(router *gin.Engine, db *pgxpool.Pool) {
 	// middleware global
-	router.Use(middleware.CORSMiddleware())
+	router.Use(middleware.CORSMiddleware)
 	// router.METHOD(endpoint, callback)
 	AuthRouter(router, db)
 
