@@ -14,5 +14,7 @@ func AuthRouter(router *gin.Engine, db *pgxpool.Pool) {
 	authRepository := repository.NewAuthRepository(db)
 	authService := service.NewAuthService(authRepository)
 	authController := controller.NewAuthController(authService)
+
+	authRouter.POST("/", authController.Login)
 	authRouter.POST("/register", authController.Register)
 }
