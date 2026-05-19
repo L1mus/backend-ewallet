@@ -63,3 +63,13 @@ func (r *AuthRepository) CheckEmailExist(ctx context.Context, email string) (boo
 	}
 	return count > 0, nil
 }
+
+func (r *AuthRepository) Login(ctx context.Context, email string) (model.User, error) {
+	sql := `SELECT id,full_name,email, hash_password FROM users WHERE email = $1`
+	args := []any{email}
+	var user model.User
+	if err := r.db.QueryRow(ctx, sql, args...).Scan(&user.Id, &user.FullName, &user.Email, &user.HashPassword); err != nil {
+		return model.User{}, err
+	}
+	return user, nil
+}
