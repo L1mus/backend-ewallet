@@ -29,8 +29,8 @@ func (c AuthController) Register(ctx *gin.Context) {
 		log.Println("Error : ", err.Error())
 		ctx.JSON(http.StatusBadRequest, dto.ResponseError{
 			Status:  "Error",
-			Message: "Bad Request",
-			Error:   err.Error(),
+			Message: err.Error(),
+			Error:   "Bad Request",
 		})
 		return
 	}
@@ -40,8 +40,8 @@ func (c AuthController) Register(ctx *gin.Context) {
 		if errors.Is(err, appError.EmailAlreadyExists) || errors.Is(err, appError.InvalidEmailFormat) {
 			ctx.JSON(http.StatusBadRequest, dto.ResponseError{
 				Status:  "Error",
-				Message: "Bad Request",
-				Error:   err.Error(),
+				Message: err.Error(),
+				Error:   "Bad Request",
 			})
 		} else {
 			ctx.JSON(http.StatusInternalServerError, dto.ResponseError{
