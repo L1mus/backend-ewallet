@@ -5,15 +5,14 @@ import (
 )
 
 type ResponseSuccess struct {
-	Status  string `json:"status"`
-	Message string `json:"message"`
-	Data    any    `json:"data"`
+	Status  string `json:"status" example:"success"`
+	Message string `json:"message" example:"Welcome, John doe"`
 }
 
 type ResponseError struct {
-	Status  string `json:"status"`
-	Message string `json:"message"`
-	Error   string `json:"errors,omitempty"`
+	Status  string `json:"status" example:"error"`
+	Message string `json:"message" example:"Failed get data"`
+	Error   string `json:"errors"`
 }
 
 type RegisterResponse struct {
