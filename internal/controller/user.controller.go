@@ -19,6 +19,19 @@ func NewUserController(userService *service.UserService) *UserController {
 		userService: userService,
 	}
 }
+
+// GetUserProfile
+//
+// @Summary      Get user Profile
+// @Description  Get user Profile
+// @Tags         users
+// @Accept       JSON
+// @Produce      JSON
+// @Param		 claims.id	claims.id	integer true
+// @Success      200  {object}  dto.ResponseSuccess
+// @Failure      500  {object}  dto.ResponseError
+// @Router       /users/profile [post]
+
 func (c *UserController) GetUserProfile(ctx *gin.Context) {
 	token, _ := ctx.Get("claims")
 	claims := token.(pkg.Claims)
