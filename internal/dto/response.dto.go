@@ -16,13 +16,23 @@ type ResponseError struct {
 }
 
 type RegisterResponse struct {
+	ResponseSuccess
+	Data RegisterDTO
+}
+
+type LoginResponse struct {
+	ResponseSuccess
+	Data LoginDTO
+}
+
+type RegisterDTO struct {
 	Id        int       `json:"id"`
 	FullName  string    `json:"full_name"`
 	Email     string    `json:"email"`
 	CreatedAt time.Time `json:"created-at"`
 }
 
-type LoginResponse struct {
+type LoginDTO struct {
 	FullName string `json:"full_name"`
 	Email    string `json:"email"`
 	Token    string `json:"token"`
