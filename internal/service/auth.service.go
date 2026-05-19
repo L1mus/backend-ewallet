@@ -19,24 +19,24 @@ func NewAuthService(authRepository *repository.AuthRepository) *AuthService {
 	}
 }
 
-func (s *AuthService) Register(ctx context.Context, req dto.RegisterRequest) (dto.RegisterResponse, error) {
+func (s *AuthService) Register(ctx context.Context, req dto.RegisterRequest) (dto.RegisterDTO, error) {
 	var hc pkg.HashConfig
 	hc.UseRecommended()
 
 	exists, err := s.authRepository.CheckEmailExist(ctx, req.Email)
 	if err != nil {
-		return dto.RegisterResponse{}, err
+		return dto.RegisterDTO{}, err
 	}
 	if exists {
-		return dto.RegisterResponse{}, appError.EmailAlreadyExists
+		return dto.RegisterDTO{}, appError.EmailAlreadyExists
 	}
 
 	hashPassword := hc.GenHash(req.Password)
 	newUser, err := s.authRepository.Register(ctx, req.FullName, req.Email, hashPassword)
 	if err != nil {
-		return dto.RegisterResponse{}, err
+		return dto.RegisterDTO{}, err
 	}
-	return dto.RegisterResponse{
+	return dto.RegisterDTO{
 		Id:        newUser.Id,
 		FullName:  newUser.FullName,
 		Email:     newUser.Email,
@@ -44,19 +44,18 @@ func (s *AuthService) Register(ctx context.Context, req dto.RegisterRequest) (dt
 	}, nil
 }
 
-func (s *AuthService) Login(ctx context.Context, req dto.LoginRequest) (dto.LoginResponse, error) {
+func (s *AuthService) Login(ctx context.Context, req dto.LoginRequest) (dto.LoginDTO, error) {
 	data, err := s.authRepository.Login(ctx, req.Email)
-	fmt.Println("Data Login:", data)
 	if err != nil {
-		return dto.LoginResponse{}, appError.EmailOrPassWrong
+		return dto.LoginDTO{}, appError.EmailOrPassWrong
 	}
 	var hc pkg.HashConfig
 	if err := hc.Compare(req.Password, data.HashPassword); err != nil {
-		return dto.LoginResponse{}, appError.EmailOrPassWrong
+		return dto.LoginDTO{}, appError.EmailOrPassWrong
 	}
 	claims := pkg.NewClaims(data.Id, data.FullName)
 	token, err := claims.GenJWT()
-	return dto.LoginResponse{
+	return dto.LoginDTO{
 		FullName: data.FullName,
 		Email:    data.Email,
 		Token:    token,
