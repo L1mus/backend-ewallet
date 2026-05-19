@@ -11,6 +11,23 @@ import (
 	"github.com/joho/godotenv"
 )
 
+// @title           E-Wallet API
+// @version         1.0
+// @description     This is a backend project for a web application called E-wallet.
+
+// @contact.name   Ali Mustadji
+// @contact.url    https://github.com/L1mus
+// @contact.email  limustadji@gmail.com
+
+// @license.name  MIT
+
+// @host      localhost:8080
+// @BasePath  /
+
+// @securityDefinitions.apiKey  ApiKeyAuth
+// @in header
+// @name Authorization
+// @description Bearer token used for authorization
 func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Fatalf("Error loading env. \ncause: %s", err.Error())
