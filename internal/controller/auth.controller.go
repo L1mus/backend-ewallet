@@ -57,3 +57,32 @@ func (c AuthController) Register(ctx *gin.Context) {
 		Data:    response,
 	})
 }
+func (c *AuthController) Login(ctx *gin.Context) {
+	var body dto.LoginRequest
+
+	if err := ctx.ShouldBindWith(&body, binding.JSON); err != nil {
+		ctx.JSON(http.StatusBadRequest, dto.ResponseError{
+			Status:  "Error",
+			Message: err.Error(),
+			Error:   "Bad Request",
+		})
+		return
+	}
+	fmt.Println("Body", body)
+	response, err := c.authService.Login(ctx.Request.Context(), body)
+	fmt.Println("response :", response)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, dto.ResponseError{
+			Status:  "Error",
+			Message: err.Error(),
+			Error:   "Internal Server Error",
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, dto.ResponseSuccess{
+		Status:  "Success",
+		Message: fmt.Sprintf("Welcome %s", response.FullName),
+		Data:    response,
+	})
+}
