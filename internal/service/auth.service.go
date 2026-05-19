@@ -43,3 +43,22 @@ func (s *AuthService) Register(ctx context.Context, req dto.RegisterRequest) (dt
 		CreatedAt: newUser.CreatedAt,
 	}, nil
 }
+
+func (s *AuthService) Login(ctx context.Context, req dto.LoginRequest) (dto.LoginResponse, error) {
+	data, err := s.authRepository.Login(ctx, req.Email)
+	fmt.Println("Data Login:", data)
+	if err != nil {
+		return dto.LoginResponse{}, appError.EmailOrPassWrong
+	}
+	var hc pkg.HashConfig
+	if err := hc.Compare(req.Password, data.HashPassword); err != nil {
+		return dto.LoginResponse{}, appError.EmailOrPassWrong
+	}
+	claims := pkg.NewClaims(data.Id, data.FullName)
+	token, err := claims.GenJWT()
+	return dto.LoginResponse{
+		FullName: data.FullName,
+		Email:    data.Email,
+		Token:    token,
+	}, nil
+}
