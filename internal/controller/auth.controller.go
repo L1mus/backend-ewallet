@@ -3,12 +3,12 @@ package controller
 import (
 	"errors"
 	"fmt"
-	"log"
-	"net/http"
+	"strings"
 
 	"github.com/L1mus/backend-ewallet/internal/appError"
 	"github.com/L1mus/backend-ewallet/internal/dto"
 	"github.com/L1mus/backend-ewallet/internal/service"
+	"github.com/L1mus/backend-ewallet/response"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 )
@@ -37,64 +37,55 @@ func NewAuthController(authService *service.AuthService) *AuthController {
 // @Router       /auth/register [post]
 func (c *AuthController) Register(ctx *gin.Context) {
 	var body dto.RegisterRequest
+
 	if err := ctx.ShouldBindWith(&body, binding.JSON); err != nil {
-		log.Println("Error : ", err.Error())
-		ctx.JSON(http.StatusBadRequest, dto.ResponseError{
-			Status:  "Error",
-			Message: err.Error(),
-			Error:   "Bad Request",
-		})
+
+		if strings.Contains(err.Error(), "FullName") && strings.Contains(err.Error(), "required") {
+			response.Error(ctx, 400, "FullName is required")
+			return
+		}
+		if strings.Contains(err.Error(), "Email") && strings.Contains(err.Error(), "required") {
+			response.Error(ctx, 400, "Email is required")
+			return
+		}
+		if strings.Contains(err.Error(), "RegisterRequest.Password") && strings.Contains(err.Error(), "required") {
+			response.Error(ctx, 400, "Password is required")
+			return
+		}
+		if strings.Contains(err.Error(), "RegisterRequest.ConfirmPassword") && strings.Contains(err.Error(), "required") {
+			response.Error(ctx, 400, "Confirm Password is required")
+			return
+		}
+		if strings.Contains(err.Error(), "email") && strings.Contains(err.Error(), "validation") {
+			response.Error(ctx, 400, "invalid email format")
+			return
+		}
+		response.Error(ctx, 500, err.Error())
 		return
 	}
 
-	response, err := c.authService.Register(ctx.Request.Context(), body)
+	res, err := c.authService.Register(ctx.Request.Context(), body)
 	if err != nil {
 		if errors.Is(err, appError.EmailAlreadyExists) || errors.Is(err, appError.InvalidEmailFormat) {
-			ctx.JSON(http.StatusBadRequest, dto.ResponseError{
-				Status:  "Error",
-				Message: err.Error(),
-				Error:   "Bad Request",
-			})
+			response.Error(ctx, 400, err.Error())
 		} else {
-			ctx.JSON(http.StatusInternalServerError, dto.ResponseError{
-				Status:  "Error",
-				Message: "Internal Server Error",
-			})
+			response.Error(ctx, 500, err.Error())
 		}
 		return
 	}
-	ctx.JSON(http.StatusCreated, dto.ResponseSuccess{
-		Status:  "Success",
-		Message: fmt.Sprintf("Register Complete, Welcome %s", response.FullName),
-		Data:    response,
-	})
+	response.Success(ctx, 201, fmt.Sprintf("Register Complete, Welcome %s", res.FullName), res)
 }
 func (c *AuthController) Login(ctx *gin.Context) {
 	var body dto.LoginRequest
 
 	if err := ctx.ShouldBindWith(&body, binding.JSON); err != nil {
-		ctx.JSON(http.StatusBadRequest, dto.ResponseError{
-			Status:  "Error",
-			Message: err.Error(),
-			Error:   "Bad Request",
-		})
+		response.Error(ctx, 400, err.Error())
 		return
 	}
-	fmt.Println("Body", body)
-	response, err := c.authService.Login(ctx.Request.Context(), body)
-	fmt.Println("response :", response)
+	res, err := c.authService.Login(ctx.Request.Context(), body)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, dto.ResponseError{
-			Status:  "Error",
-			Message: err.Error(),
-			Error:   "Internal Server Error",
-		})
+		response.Error(ctx, 500, err.Error())
 		return
 	}
-
-	ctx.JSON(http.StatusOK, dto.ResponseSuccess{
-		Status:  "Success",
-		Message: fmt.Sprintf("Welcome %s", response.FullName),
-		Data:    response,
-	})
+	response.Success(ctx, 201, fmt.Sprintf("Login Complete, Welcome %s", res.FullName), res)
 }
