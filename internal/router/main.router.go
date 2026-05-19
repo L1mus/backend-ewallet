@@ -14,7 +14,9 @@ func InitRouter(router *gin.Engine, db *pgxpool.Pool) {
 	router.Use(middleware.CORSMiddleware)
 	// router.METHOD(endpoint, callback)
 	AuthRouter(router, db)
+	UserRouter(router, db)
 
+	//fallback
 	router.NoRoute(func(ctx *gin.Context) {
 		ctx.JSON(http.StatusNotFound, dto.ResponseError{
 			Status:  "Error",
