@@ -75,6 +75,19 @@ func (c *AuthController) Register(ctx *gin.Context) {
 	}
 	response.Success(ctx, 201, fmt.Sprintf("Register Complete, Welcome %s", res.FullName), res)
 }
+
+// Login
+//
+// @Summary      Login account
+// @Description  login into user account
+// @Tags         Auth
+// @Accept       JSON
+// @Produce      JSON
+// @Param		 body	body	dto.LoginRequest true "Login Payload"
+// @Success      200  {object}  dto.LoginResponse
+// @Failure      400  {object}  dto.ResponseError
+// @Failure      500  {object}  dto.ResponseError
+// @Router       /auth [post]
 func (c *AuthController) Login(ctx *gin.Context) {
 	var body dto.LoginRequest
 
