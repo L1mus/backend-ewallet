@@ -34,3 +34,11 @@ type FavoriteContact struct {
 	FavoriteUserID int       `json:"favorite_user_id" db:"favorite_user_id"`
 	CreatedAt      time.Time `json:"created_at" db:"created_at"`
 }
+
+type UserProfile struct {
+	Id                int     `json:"id" db:"id"`
+	FullName          string  `json:"full_name" db:"full_name"`
+	Email             string  `json:"email" db:"email"`
+	Phone             *string `json:"phone" db:"phone"`
+	ProfilePictureURL *string `json:"profile_picture_url" db:"profile_picture_url"`
+}
