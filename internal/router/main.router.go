@@ -7,11 +7,15 @@ import (
 	"github.com/L1mus/backend-ewallet/internal/middleware"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func InitRouter(router *gin.Engine, db *pgxpool.Pool) {
 	// middleware global
 	router.Use(middleware.CORSMiddleware)
+	//swagger docs
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	// router.METHOD(endpoint, callback)
 	AuthRouter(router, db)
 	UserRouter(router, db)
