@@ -1,6 +1,8 @@
 package dto
 
-import "time"
+import (
+	"time"
+)
 
 type ResponseSuccess struct {
 	Status  string `json:"status"`
@@ -19,4 +21,18 @@ type RegisterResponse struct {
 	FullName  string    `json:"full_name"`
 	Email     string    `json:"email"`
 	CreatedAt time.Time `json:"created-at"`
+}
+
+type LoginResponse struct {
+	FullName string `json:"full_name"`
+	Email    string `json:"email"`
+	Token    string `json:"token"`
+}
+
+type GetUserProfileResponse struct {
+	Id                int     `json:"id"`
+	FullName          string  `json:"full_name"`
+	Email             string  `json:"email"`
+	Phone             *string `json:"phone"`
+	ProfilePictureURL *string `json:"profile_picture_url"`
 }
