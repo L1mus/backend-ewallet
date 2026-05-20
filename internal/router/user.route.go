@@ -17,4 +17,5 @@ func UserRouter(router *gin.Engine, db *pgxpool.Pool) {
 	userController := controller.NewUserController(userService)
 
 	userRouter.GET("/profile", middleware.VerifyToken, userController.GetUserProfile)
+	userRouter.GET("/dashboard", middleware.VerifyToken, userController.GetUserDashboard)
 }
