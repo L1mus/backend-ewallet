@@ -46,7 +46,7 @@ func (s *UserService) GetUserDashboad(ctx context.Context, id int) (dto.GetUserD
 
 func (s *UserService) FindReceiver(ctx context.Context, id int, search string, limit int, page int) ([]dto.FindReceiverDTO, error) {
 	if page <= 0 || limit <= 0 {
-		return nil, appError.InvalidEmailFormat
+		return nil, appError.InvalidPageNumber
 	}
 
 	offset := (page - 1) * limit
