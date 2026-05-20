@@ -43,3 +43,28 @@ func (s *UserService) GetUserDashboad(ctx context.Context, id int) (dto.GetUserD
 		TotalExpenses: data.TotalExpenses,
 	}, nil
 }
+
+func (s *UserService) FindReceiver(ctx context.Context, id int, search string, limit int, page int) ([]dto.FindReceiverDTO, error) {
+	if limit > 10 {
+		limit = 10
+	}
+	if page <= 0 {
+		page = 1
+	}
+	offset := (page - 1) * limit
+	data, err := s.userRepository.FindReceiver(ctx, id, search, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	var users []dto.FindReceiverDTO
+	for _, user := range data {
+		users = append(users, dto.FindReceiverDTO{
+			Id:                user.Id,
+			FullName:          user.FullName,
+			Phone:             user.Phone,
+			ProfilePictureUrl: user.ProfilePictureUrl,
+			IsVerified:        user.IsVerified,
+		})
+	}
+	return users, nil
+}
