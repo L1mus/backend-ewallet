@@ -31,3 +31,15 @@ func (s *UserService) GetUserProfile(ctx context.Context, id int) (dto.GetUserPr
 		ProfilePictureURL: data.ProfilePictureURL,
 	}, nil
 }
+
+func (s *UserService) GetUserDashboad(ctx context.Context, id int) (dto.GetUserDashboardDTO, error) {
+	data, err := s.userRepository.GetUserDashboard(ctx, id)
+	if err != nil {
+		return dto.GetUserDashboardDTO{}, err
+	}
+	return dto.GetUserDashboardDTO{
+		Balance:       data.Balance,
+		TotalIncome:   data.TotalIncome,
+		TotalExpenses: data.TotalExpenses,
+	}, nil
+}
