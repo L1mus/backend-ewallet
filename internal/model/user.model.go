@@ -48,3 +48,10 @@ type UserDashboard struct {
 	TotalIncome   float32 `db:"total_income"`
 	TotalExpenses float32 `db:"total_expenses"`
 }
+type FindReceiver struct {
+	Id                int    `db:"id"`
+	FullName          string `db:"full_name"`
+	Phone             string `db:"phone"`
+	ProfilePictureUrl string `db:"profile_picture_url"`
+	IsVerified        bool   `db:"is_verified"`
+}
