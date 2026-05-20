@@ -28,7 +28,7 @@ func (r *AuthRepository) Register(ctx context.Context, fullName, email, hashPass
 	defer func(tx pgx.Tx, ctx context.Context) {
 		err := tx.Rollback(ctx)
 		if err != nil {
-			log.Println("error: ", err)
+			log.Println("error: ", err.Error())
 		}
 	}(tx, ctx)
 
