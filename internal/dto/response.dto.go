@@ -50,3 +50,22 @@ type GetUserProfileDTO struct {
 	Phone             *string `json:"phone" example:"021234512552"`
 	ProfilePictureURL *string `json:"profile_picture_url" example:"https://example.com"`
 }
+
+type GetUserDashboardDTO struct {
+	Balance       float32 `json:"balance"`
+	TotalIncome   float32 `json:"total_income"`
+	TotalExpenses float32 `json:"total_expenses"`
+}
+
+type FindReceiverDTO struct {
+	Id                int    `json:"id"`
+	FullName          string `json:"full_name"`
+	Phone             string `json:"phone"`
+	ProfilePictureUrl string `json:"profile_picture_url"`
+	IsVerified        bool   `json:"is_verified"`
+}
+
+type FindReceiverResponse struct {
+	ResponseSuccess
+	Data []FindReceiverDTO
+}
