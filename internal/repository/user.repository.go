@@ -21,9 +21,9 @@ func (r *UserRepository) GetUserProfile(ctx context.Context, id int) (model.User
 	sql := `SELECT id,full_name,email,phone,profile_picture_url FROM users WHERE id = $1`
 
 	args := []any{id}
-	var user model.UserProfile
-	if err := r.db.QueryRow(ctx, sql, args...).Scan(&user.Id, &user.FullName, &user.Email, &user.Phone, &user.ProfilePictureURL); err != nil {
+	var data model.UserProfile
+	if err := r.db.QueryRow(ctx, sql, args...).Scan(&data.Id, &data.FullName, &data.Email, &data.Phone, &data.ProfilePictureURL); err != nil {
 		return model.UserProfile{}, err
 	}
-	return user, nil
+	return data, nil
 }
