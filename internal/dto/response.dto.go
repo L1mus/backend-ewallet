@@ -11,8 +11,8 @@ type ResponseSuccess struct {
 
 type ResponseError struct {
 	Status  string `json:"status" example:"error"`
-	Message string `json:"message" example:"Failed get data"`
-	Error   string `json:"errors"`
+	Message string `json:"message" example:"Failed get data/internal server error"`
+	Error   string `json:"errors" example:"internal server error/bad request"`
 }
 
 type RegisterResponse struct {
