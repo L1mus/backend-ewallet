@@ -42,3 +42,9 @@ type UserProfile struct {
 	Phone             *string `json:"phone" db:"phone"`
 	ProfilePictureURL *string `json:"profile_picture_url" db:"profile_picture_url"`
 }
+
+type UserDashboard struct {
+	Balance       float32 `db:"balance"`
+	TotalIncome   float32 `db:"total_income"`
+	TotalExpenses float32 `db:"total_expenses"`
+}
