@@ -45,12 +45,10 @@ func (s *UserService) GetUserDashboad(ctx context.Context, id int) (dto.GetUserD
 }
 
 func (s *UserService) FindReceiver(ctx context.Context, id int, search string, limit int, page int) ([]dto.FindReceiverDTO, error) {
-	if limit > 10 {
-		limit = 10
+	if page <= 0 || limit <= 0 {
+		return nil, appError.InvalidEmailFormat
 	}
-	if page <= 0 {
-		page = 1
-	}
+
 	offset := (page - 1) * limit
 	data, err := s.userRepository.FindReceiver(ctx, id, search, limit, offset)
 	if err != nil {
