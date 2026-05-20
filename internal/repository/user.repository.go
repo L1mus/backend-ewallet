@@ -42,3 +42,33 @@ func (r *UserRepository) GetUserDashboard(ctx context.Context, id int) (model.Us
 	}
 	return data, nil
 }
+
+func (r *UserRepository) FindReceiver(ctx context.Context, id int, search string, limit int, offset int) ([]model.FindReceiver, error) {
+	sql := `
+			SELECT u.id, u.full_name, u.phone, u.profile_picture_url, u.is_verified
+			FROM users u
+			WHERE u.deleted_at IS NULL
+			  AND u.id != $1
+			  AND (
+					u.full_name ILIKE $2 OR 
+					u.phone  ILIKE $2
+				)
+			ORDER BY u.full_name ASC
+			LIMIT  $3
+			OFFSET $4;`
+	args := []any{id, search, limit, offset}
+	var data []model.FindReceiver
+	row, err := r.db.Query(ctx, sql, args...)
+	if err != nil {
+		return []model.FindReceiver{}, err
+	}
+	defer row.Close()
+	for row.Next() {
+		var user model.FindReceiver
+		if err := row.Scan(&user.Id, &user.FullName, &user.Phone, &user.IsVerified); err != nil {
+			return []model.FindReceiver{}, err
+		}
+		data = append(data, user)
+	}
+	return data, nil
+}
