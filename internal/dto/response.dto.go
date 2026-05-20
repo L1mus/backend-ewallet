@@ -26,15 +26,15 @@ type LoginResponse struct {
 }
 
 type RegisterDTO struct {
-	Id        int       `json:"id"`
-	FullName  string    `json:"full_name"`
-	Email     string    `json:"email"`
-	CreatedAt time.Time `json:"created-at"`
+	Id        int       `json:"id" example:"101"`
+	FullName  string    `json:"full_name" example:"John Doe"`
+	Email     string    `json:"email" example:"example@mail.com"`
+	CreatedAt time.Time `json:"created-at" example:"2026-05-19T23:35:11.88652Z"`
 }
 
 type LoginDTO struct {
-	FullName string `json:"full_name"`
-	Email    string `json:"email"`
+	FullName string `json:"full_name" example:"John Doe"`
+	Email    string `json:"email" example:"example@mail.com"`
 	Token    string `json:"token"`
 }
 
