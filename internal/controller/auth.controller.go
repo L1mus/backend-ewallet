@@ -28,8 +28,8 @@ func NewAuthController(authService *service.AuthService) *AuthController {
 // @Summary      Register account
 // @Description  create user account
 // @Tags         Auth
-// @Accept       JSON
-// @Produce      JSON
+// @Accept       json
+// @Produce      json
 // @Param		 body	body	dto.RegisterRequest true "Register Payload"
 // @Success      201  {object}  dto.RegisterResponse
 // @Failure      400  {object}  dto.ResponseError
@@ -81,8 +81,8 @@ func (c *AuthController) Register(ctx *gin.Context) {
 // @Summary      Login account
 // @Description  login into user account
 // @Tags         Auth
-// @Accept       JSON
-// @Produce      JSON
+// @Accept       json
+// @Produce      json
 // @Param		 body	body	dto.LoginRequest true "Login Payload"
 // @Success      200  {object}  dto.LoginResponse
 // @Failure      400  {object}  dto.ResponseError
