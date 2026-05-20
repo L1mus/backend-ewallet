@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	_ "github.com/L1mus/backend-ewallet/docs"
 	"github.com/L1mus/backend-ewallet/internal/config"
 	"github.com/L1mus/backend-ewallet/internal/router"
 	"github.com/gin-gonic/gin"
