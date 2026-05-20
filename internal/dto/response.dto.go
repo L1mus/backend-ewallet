@@ -38,10 +38,10 @@ type LoginDTO struct {
 	Token    string `json:"token"`
 }
 
-type GetUserProfileResponse struct {
-	Id                int     `json:"id"`
-	FullName          string  `json:"full_name"`
-	Email             string  `json:"email"`
-	Phone             *string `json:"phone"`
-	ProfilePictureURL *string `json:"profile_picture_url"`
+type GetUserProfileDTO struct {
+	Id                int     `json:"id" example:"1"`
+	FullName          string  `json:"full_name" example:"John Doe"`
+	Email             string  `json:"email" example:"example@mail.com"`
+	Phone             *string `json:"phone" example:"021234512552"`
+	ProfilePictureURL *string `json:"profile_picture_url" example:"https://example.com"`
 }

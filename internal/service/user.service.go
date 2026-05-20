@@ -18,12 +18,12 @@ func NewUserService(userRepository *repository.UserRepository) *UserService {
 	}
 }
 
-func (s *UserService) GetUserProfile(ctx context.Context, id int) (dto.GetUserProfileResponse, error) {
+func (s *UserService) GetUserProfile(ctx context.Context, id int) (dto.GetUserProfileDTO, error) {
 	data, err := s.userRepository.GetUserProfile(ctx, id)
 	if err != nil {
-		return dto.GetUserProfileResponse{}, appError.UserNotFound
+		return dto.GetUserProfileDTO{}, appError.UserNotFound
 	}
-	return dto.GetUserProfileResponse{
+	return dto.GetUserProfileDTO{
 		Id:                data.Id,
 		FullName:          data.FullName,
 		Email:             data.Email,
