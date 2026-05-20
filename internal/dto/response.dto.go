@@ -25,6 +25,11 @@ type LoginResponse struct {
 	Data LoginDTO
 }
 
+type GetUserProfileResponse struct {
+	ResponseSuccess
+	Data GetUserProfileDTO
+}
+
 type RegisterDTO struct {
 	Id        int       `json:"id" example:"101"`
 	FullName  string    `json:"full_name" example:"John Doe"`
