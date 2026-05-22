@@ -64,5 +64,40 @@ func (s *UserService) FindReceiver(ctx context.Context, id int, search string, l
 			IsVerified:        user.IsVerified,
 		})
 	}
-	return users, nil
+	return users, totalData, totalPage, nil
+}
+
+func (s *UserService) GetTransactionReport(ctx context.Context, id int, period string) ([]dto.GetTransactionReportDTO, error) {
+	data, err := s.userRepository.GetTransactionReport(ctx, id, period)
+	if err != nil {
+		return nil, err
+	}
+	var transactions []dto.GetTransactionReportDTO
+	for _, transaction := range data {
+		transactions = append(transactions, dto.GetTransactionReportDTO{
+			Period:       transaction.Period,
+			TotalIncome:  transaction.TotalIncome,
+			TotalExpense: transaction.TotalExpense,
+		})
+	}
+	return transactions, nil
+}
+
+func (s *UserService) CheckPin(ctx context.Context, id int) error {
+	data, err := s.userRepository.GetPin(ctx, id)
+	if err != nil {
+		return err
+	}
+	if data.HashPin == nil {
+		return appError.EmptyPin
+	}
+	return nil
+}
+
+func (s *UserService) GetTransactionHistory(ctx context.Context, id int, search string, limit int8, page int8) {
+	//offset := (page - 1) * limit
+	//data, err := s.userRepository.GetTransactionHistory(ctx, id, search, limit, offset)
+	//if err != nil {
+	//	return
+	//}
 }
