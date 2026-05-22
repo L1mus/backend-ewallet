@@ -44,15 +44,17 @@ func (s *UserService) GetUserDashboard(ctx context.Context, id int) (dto.GetUser
 	}, nil
 }
 
-func (s *UserService) FindReceiver(ctx context.Context, id int, search string, limit int, page int) ([]dto.FindReceiverDTO, error) {
-	if page <= 0 || limit <= 0 {
-		return nil, appError.InvalidPageNumber
-	}
+func (s *UserService) FindReceiver(ctx context.Context, id int, req dto.ReceiverQuery) ([]dto.FindReceiverDTO, int, int, error) {
+	totalData, totalPage, err := s.userRepository.GetTotalPageReceiver(ctx, id, req)
+	fmt.Println("check out ")
 
-	offset := (page - 1) * limit
-	data, err := s.userRepository.FindReceiver(ctx, id, search, limit, offset)
 	if err != nil {
-		return nil, err
+		return nil, 0, 0, err
+	}
+	data, err := s.userRepository.GetReceiver(ctx, id, req)
+
+	if err != nil {
+		return nil, 0, 0, err
 	}
 	var users []dto.FindReceiverDTO
 	for _, user := range data {
