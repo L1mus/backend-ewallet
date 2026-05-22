@@ -26,6 +26,23 @@ func Success(ctx *gin.Context, statusCodeHTTP int, message string, data any) {
 	ctx.JSON(statusCodeHTTP, res)
 }
 
+func SuccessWithMetaData(ctx *gin.Context, statusCode int, message string, data any, meta any) {
+	res := dto.ResponseSuccess{
+		Status:  "success",
+		Message: message,
+	}
+
+	ctx.JSON(statusCode, struct {
+		dto.ResponseSuccess
+		Data any `json:"data"`
+		Meta any `json:"meta"`
+	}{
+		ResponseSuccess: res,
+		Data:            data,
+		Meta:            meta,
+	})
+}
+
 func Error(ctx *gin.Context, statusCodeHTTP int, message string) {
 	ctx.JSON(statusCodeHTTP, dto.ResponseError{
 		Status:  "error",
