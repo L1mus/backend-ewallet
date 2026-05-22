@@ -100,17 +100,116 @@ func (r *UserRepository) GetReceiver(ctx context.Context, id int, req dto.Receiv
 	defer rows.Close()
 
 	var data []model.FindReceiver
-	row, err := r.db.Query(ctx, sql, args...)
-	if err != nil {
-		return []model.FindReceiver{}, err
-	}
-	defer row.Close()
-	for row.Next() {
+	for rows.Next() {
 		var user model.FindReceiver
-		if err := row.Scan(&user.Id, &user.FullName, &user.Phone, &user.IsVerified); err != nil {
-			return []model.FindReceiver{}, err
+		if err := rows.Scan(&user.Id, &user.FullName, &user.Phone, &user.ProfilePictureUrl, &user.IsVerified); err != nil {
+			return nil, err
 		}
 		data = append(data, user)
 	}
 	return data, nil
+}
+
+func (r *UserRepository) GetTotalPageReceiver(ctx context.Context, id int, req dto.ReceiverQuery) (int, int, error) {
+	var sb strings.Builder
+	var args []any
+	argCount := 1
+
+	sb.WriteString(`
+			SELECT COUNT(DISTINCT id)
+			FROM users
+			WHERE deleted_at IS NULL
+			  AND id != $1
+			  `)
+	args = append(args, id)
+	argCount++
+
+	if req.Search != "" {
+		_, err := fmt.Fprintf(&sb, `AND (u.full_name ILIKE %%$%d OR u.phone  ILIKE %%$%d)`, argCount, argCount)
+		if err != nil {
+			return 0, 0, err
+		}
+		args = append(args, req.Search)
+	}
+
+	var totalReceiver int
+	sql := sb.String()
+	err := r.db.QueryRow(ctx, sql, args...).Scan(&totalReceiver)
+	if err != nil {
+		return 0, 0, err
+	}
+	receiverPerPage := 10
+	totalPage := int(math.Ceil(float64(totalReceiver) / float64(receiverPerPage)))
+	return totalReceiver, totalPage, nil
+}
+
+//func (r *UserRepository) GetAllPagination(ctx context.Context, pagination int) {
+//
+//}
+
+func (r *UserRepository) GetTransactionReport(ctx context.Context, id int, timePeriod string) ([]model.GetTransactionReport, error) {
+	sql := `
+			SELECT  DATE_TRUNC($2, created_at)::DATE AS period, COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) AS total_income, COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0) AS total_expense
+			FROM transactions
+			WHERE user_id = $1 AND status = 'success'
+			GROUP BY DATE_TRUNC($2, created_at)
+			ORDER BY period ASC;`
+	args := []any{id, timePeriod}
+	var data []model.GetTransactionReport
+	rows, err := r.db.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var transaction model.GetTransactionReport
+		if err := rows.Scan(&transaction.Period, &transaction.TotalIncome, &transaction.TotalExpense); err != nil {
+			return nil, err
+		}
+		data = append(data, transaction)
+	}
+	return data, nil
+}
+
+func (r *UserRepository) GetPin(ctx context.Context, id int) (model.User, error) {
+	sql := `SELECT hash_pin FROM users WHERE id = $1`
+	args := []any{id}
+	var pin model.User
+	if err := r.db.QueryRow(ctx, sql, args...).Scan(&pin.HashPin); err != nil {
+		return model.User{}, err
+	}
+	return pin, nil
+}
+
+func (r *UserRepository) GetTransactionHistory(ctx context.Context, id int, search string, limit int8, offset int8) ([]model.GetTransactionHistory, error) {
+	sql := `
+			SELECT  t.id AS transaction_id, t.amount, t.type, t.activity_type, t.status, t.created_at, td.description AS transfer_description, u_receiver.full_name AS receiver_name, pm.name AS payment_method_name
+			FROM transactions t
+			LEFT JOIN transfer_details td ON t.id = td.transaction_id
+			LEFT JOIN users u_receiver ON td.receiver_id = u_receiver.id
+			LEFT JOIN topup_details tp ON t.id = tp.transaction_id
+			LEFT JOIN payment_method pm ON tp.payment_method_id = pm.id
+			WHERE t.user_id = $1
+			  AND (
+				  u_receiver.full_name ILIKE '%' || $2 || '%' OR
+				  pm.name ILIKE '%' || $2 || '%' OR
+				  td.description ILIKE '%' || $2 || '%'
+			  )
+			ORDER BY t.created_at DESC
+			LIMIT $3 OFFSET $4;`
+	args := []any{id, search, limit, offset}
+	var transactions []model.GetTransactionHistory
+	rows, err := r.db.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var transaction model.GetTransactionHistory
+		if err := rows.Scan(&transaction.TransactionID, &transaction.Amount, &transaction.Amount, &transaction.Type, &transaction.ActivityType, &transaction.Status, &transaction.CreatedAt, &transaction.PaymentMethodName, &transaction.ReceiverName); err != nil {
+			return nil, err
+		}
+		transactions = append(transactions, transaction)
+	}
+	return transactions, nil
 }
