@@ -32,7 +32,7 @@ func (s *UserService) GetUserProfile(ctx context.Context, id int) (dto.GetUserPr
 	}, nil
 }
 
-func (s *UserService) GetUserDashboad(ctx context.Context, id int) (dto.GetUserDashboardDTO, error) {
+func (s *UserService) GetUserDashboard(ctx context.Context, id int) (dto.GetUserDashboardDTO, error) {
 	data, err := s.userRepository.GetUserDashboard(ctx, id)
 	if err != nil {
 		return dto.GetUserDashboardDTO{}, err
