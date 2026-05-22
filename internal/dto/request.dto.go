@@ -11,3 +11,9 @@ type LoginRequest struct {
 	Email    string `json:"email" example:"example@mail.com"`
 	Password string `json:"password" example:"example123"`
 }
+
+type GetTransactionsReportRequest struct {
+	Period string `json:"period" example:"month"`
+}
+
+}
