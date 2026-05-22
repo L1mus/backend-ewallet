@@ -18,5 +18,6 @@ func UserRouter(router *gin.Engine, db *pgxpool.Pool) {
 
 	userRouter.GET("/profile", middleware.VerifyToken, userController.GetUserProfile)
 	userRouter.GET("/dashboard", middleware.VerifyToken, userController.GetUserDashboard)
-	userRouter.GET("/", middleware.VerifyToken, userController.FindReceiver)
+	userRouter.GET("/report", middleware.VerifyToken, userController.GetTransactionReport)
+	userRouter.GET("/transfer", middleware.VerifyToken, userController.FindReceiver)
 }
