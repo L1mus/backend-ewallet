@@ -63,13 +63,13 @@ type GetTransactionReport struct {
 }
 
 type GetTransactionHistory struct {
-	TransactionID     int                     `db:"transaction_id"`
-	Amount            float32                 `db:"amount"`
-	Type              TypeTransaction         `db:"type"`
-	ActivityType      TypeActivityTransaction `db:"activity_type"`
-	Status            StatusTransaction       `db:"status"`
-	CreatedAt         time.Time               `db:"created_at"`
-	Description       string                  `db:"transfer_description"`
-	ReceiverName      string                  `db:"receiver_name"`
-	PaymentMethodName string                  `db:"payment_method_name"`
+	TransactionID     int       `db:"transaction_id"`
+	Amount            float32   `db:"amount"`
+	Type              string    `db:"type" binding:"income expense"`
+	ActivityType      string    `db:"activity_type" binding:"transfer topup"`
+	Status            string    `db:"status" binding:"pending success failed"`
+	CreatedAt         time.Time `db:"created_at"`
+	Description       string    `db:"transfer_description"`
+	ReceiverName      string    `db:"receiver_name"`
+	PaymentMethodName string    `db:"payment_method_name"`
 }

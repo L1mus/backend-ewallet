@@ -3,13 +3,13 @@ package model
 import "time"
 
 type Transaction struct {
-	Id           int                     `json:"id" db:"id"`
-	UserID       int                     `json:"user_id" db:"user_id"`
-	Amount       float64                 `json:"amount" db:"amount"`
-	Type         TypeTransaction         `json:"type" db:"type"`
-	ActivityType TypeActivityTransaction `json:"activity_type" db:"activity_type"`
-	Status       StatusTransaction       `json:"status" db:"status"`
-	CreatedAt    time.Time               `json:"created_at" db:"created_at"`
+	Id           int       `json:"id" db:"id"`
+	UserID       int       `json:"user_id" db:"user_id"`
+	Amount       float64   `json:"amount" db:"amount"`
+	Type         string    `json:"type" db:"type" binding:"income expense"`
+	ActivityType string    `json:"activity_type" db:"activity_type" binding:"transfer topup"`
+	Status       string    `json:"status" db:"status" binding:"pending success failed"`
+	CreatedAt    time.Time `json:"created_at" db:"created_at"`
 }
 
 type TransferDetail struct {
