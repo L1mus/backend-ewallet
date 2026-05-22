@@ -16,4 +16,12 @@ type GetTransactionsReportRequest struct {
 	Period string `json:"period" example:"month"`
 }
 
+type TransferQuery struct {
+	Page   string `json:"page" example:"1"`
+	Search string `json:"search" example:"John Doe"`
+}
+
+type ReceiverQuery struct {
+	Page   string `json:"page" example:"1"`
+	Search string `json:"search" example:"John Doe"`
 }
