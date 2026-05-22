@@ -69,3 +69,22 @@ type FindReceiverResponse struct {
 	ResponseSuccess
 	Data []FindReceiverDTO
 }
+
+type GetTransactionReportDTO struct {
+	Period       *time.Time `db:"period"`
+	TotalIncome  float32    `db:"total_income"`
+	TotalExpense float32    `db:"total_expense"`
+}
+
+type GetTransactionReportResponse struct {
+	ResponseSuccess
+	Data []GetTransactionReportDTO
+}
+
+type PaginationMetaData struct {
+	TotalPages int    `json:"total-page,omitempty"`
+	TotalData  int    `json:"total_data,omitempty"`
+	PageSize   int    `json:"page_size,omitempty"`
+	NextLink   string `json:"next_page,omitempty"`
+	PrevLink   string `json:"prev_page,omitempty"`
+}
