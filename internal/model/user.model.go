@@ -55,3 +55,21 @@ type FindReceiver struct {
 	ProfilePictureUrl string `db:"profile_picture_url"`
 	IsVerified        bool   `db:"is_verified"`
 }
+
+type GetTransactionReport struct {
+	Period       *time.Time `db:"period"`
+	TotalIncome  float32    `db:"total_income"`
+	TotalExpense float32    `db:"total_expense"`
+}
+
+type GetTransactionHistory struct {
+	TransactionID     int                     `db:"transaction_id"`
+	Amount            float32                 `db:"amount"`
+	Type              TypeTransaction         `db:"type"`
+	ActivityType      TypeActivityTransaction `db:"activity_type"`
+	Status            StatusTransaction       `db:"status"`
+	CreatedAt         time.Time               `db:"created_at"`
+	Description       string                  `db:"transfer_description"`
+	ReceiverName      string                  `db:"receiver_name"`
+	PaymentMethodName string                  `db:"payment_method_name"`
+}
