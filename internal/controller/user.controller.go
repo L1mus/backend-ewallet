@@ -3,10 +3,12 @@ package controller
 import (
 	"strconv"
 
+	"github.com/L1mus/backend-ewallet/internal/dto"
 	"github.com/L1mus/backend-ewallet/internal/service"
 	"github.com/L1mus/backend-ewallet/pkg"
 	"github.com/L1mus/backend-ewallet/response"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 )
 
 type UserController struct {
@@ -97,14 +99,15 @@ func (c *UserController) FindReceiver(ctx *gin.Context) {
 func (c *UserController) GetTransactionReport(ctx *gin.Context) {
 	token, _ := ctx.Get("claims")
 	claims := token.(pkg.Claims)
-	search := ctx.Query("search")
-	strPage := ctx.DefaultQuery("page", "1")
-	strLimit := ctx.DefaultQuery("limit", "10")
-	page, _ := strconv.Atoi(strPage)
-	limit, _ := strconv.Atoi(strLimit)
-	res, err := c.userService.FindReceiver(ctx, claims.Id, search, limit, page)
+	var body dto.GetTransactionsReportRequest
+	if err := ctx.ShouldBindWith(&body, binding.JSON); err != nil {
+		response.Error(ctx, 400, "bad request")
+		return
+	}
+	res, err := c.userService.GetTransactionReport(ctx, claims.Id, body.Period)
 	if err != nil {
 		response.Error(ctx, 500, "internal server error")
+		return
 	}
 	response.Success(ctx, 200, "Get data success", res)
 }
