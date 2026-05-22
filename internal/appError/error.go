@@ -8,4 +8,5 @@ var (
 	EmailOrPassWrong   = errors.New("wrong email or password")
 	UserNotFound       = errors.New("profile not found")
 	InvalidPageNumber  = errors.New("invalid page number, must be positive number")
+	EmptyPin           = errors.New("pin is empty, create PIN please")
 )
