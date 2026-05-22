@@ -1,0 +1,1 @@
+DROP TABLE category_payment_method
