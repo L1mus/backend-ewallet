@@ -44,7 +44,7 @@ func (c *UserController) GetUserProfile(ctx *gin.Context) {
 func (c *UserController) GetUserDashboard(ctx *gin.Context) {
 	token, _ := ctx.Get("claims")
 	claims := token.(pkg.Claims)
-	res, err := c.userService.GetUserDashboad(ctx, claims.Id)
+	res, err := c.userService.GetUserDashboard(ctx, claims.Id)
 	if err != nil {
 		response.Error(ctx, 500, "internal server error")
 	}
@@ -52,6 +52,49 @@ func (c *UserController) GetUserDashboard(ctx *gin.Context) {
 }
 
 func (c *UserController) FindReceiver(ctx *gin.Context) {
+	// bentuk url users?search=&page
+	// binding request query
+	var req dto.ReceiverQuery
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		response.Error(ctx, 400, "bad request")
+	}
+	// default page jika request page tidak string kosong
+	// get all data, get total pages
+	// ambil seluruh data dengan mengirim request sebagai params
+	// inisialisasi nextpage dan prevpage
+	// format page string dengan Sprintf(/users?search=&page=%d%s)
+	// response metadata
+
+	token, _ := ctx.Get("claims")
+	claims := token.(pkg.Claims)
+	//search := ctx.Query("search")
+	//strPage := ctx.DefaultQuery("page", "1")
+	//strLimit := ctx.DefaultQuery("limit", "10")
+	//page, _ := strconv.Atoi(strPage)
+	//limit, _ := strconv.Atoi(strLimit)
+
+	res, totalData, totalPage, err := c.userService.FindReceiver(ctx, claims.Id, req)
+
+	if err != nil {
+		response.Error(ctx, 500, "internal serve")
+		return
+	}
+	page, err := strconv.Atoi(req.Page)
+	if err != nil {
+		response.Error(ctx, 500, "internal server")
+	}
+
+	prevLink := fmt.Sprintf("users/?search=%s&page=%s", page-1)
+	nextLink := fmt.Sprintf("users/?search=%s&page=%s", page+1)
+	response.SuccessWithMetaData(ctx, 200, "Get data success", res, dto.PaginationMetaData{
+		TotalPages: totalPage,
+		TotalData:  totalData,
+		NextLink:   nextLink,
+		PrevLink:   prevLink,
+	})
+}
+
+func (c *UserController) GetTransactionReport(ctx *gin.Context) {
 	token, _ := ctx.Get("claims")
 	claims := token.(pkg.Claims)
 	search := ctx.Query("search")
