@@ -2,7 +2,12 @@ package repository
 
 import (
 	"context"
+	"fmt"
+	"math"
+	"strconv"
+	"strings"
 
+	"github.com/L1mus/backend-ewallet/internal/dto"
 	"github.com/L1mus/backend-ewallet/internal/model"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -43,20 +48,57 @@ func (r *UserRepository) GetUserDashboard(ctx context.Context, id int) (model.Us
 	return data, nil
 }
 
-func (r *UserRepository) FindReceiver(ctx context.Context, id int, search string, limit int, offset int) ([]model.FindReceiver, error) {
-	sql := `
-			SELECT u.id, u.full_name, u.phone, u.profile_picture_url, u.is_verified
-			FROM users u
-			WHERE u.deleted_at IS NULL
-			  AND u.id != $1
-			  AND (
-					u.full_name ILIKE $2 OR 
-					u.phone  ILIKE $2
-				)
-			ORDER BY u.full_name ASC
-			LIMIT  $3
-			OFFSET $4;`
-	args := []any{id, search, limit, offset}
+func (r *UserRepository) GetReceiver(ctx context.Context, id int, req dto.ReceiverQuery) ([]model.FindReceiver, error) {
+	//membuat string query dengan strings.builder
+	//args sebagai nilai yang akan dimasukan ke parameterization query
+	//variable count yang akan terus increment sesuai dengan panjang variable args
+	var sb strings.Builder
+	var args []any
+	argCount := 1
+
+	sb.WriteString(`
+			SELECT id, full_name, phone, profile_picture_url, is_verified
+			FROM users 
+			WHERE deleted_at IS NULL
+			  AND id != $1
+			  `)
+	args = append(args, id)
+	argCount++
+	if req.Search != "" {
+		_, err := fmt.Fprintf(&sb, `AND (full_name ILIKE %%$%d OR phone  ILIKE %%$%d)`, argCount, argCount)
+		if err != nil {
+			return nil, err
+		}
+		args = append(args, req.Search)
+		argCount++
+	}
+	sb.WriteString(`ORDER BY full_name ASC;`)
+	limit := 10
+	var offset int8
+	if req.Page != "" {
+		page, _ := strconv.Atoi(req.Page)
+		if page < 0 {
+			page = 1
+			offset = int8((page - 1) * limit)
+		} else {
+			offset = int8((page - 1) * limit)
+		}
+		_, err := fmt.Fprintf(&sb, `LIMIT %d OFFSET %d`, argCount, argCount+1)
+		if err != nil {
+			return nil, err
+		}
+		args = append(args, limit, offset)
+
+	}
+
+	sql := sb.String()
+	fmt.Println(sql)
+	rows, err := r.db.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
 	var data []model.FindReceiver
 	row, err := r.db.Query(ctx, sql, args...)
 	if err != nil {
