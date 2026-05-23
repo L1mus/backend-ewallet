@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"fmt"
-	"math"
 	"strconv"
 	"strings"
 
@@ -23,7 +22,7 @@ func NewUserRepository(db *pgxpool.Pool) *UserRepository {
 }
 
 func (r *UserRepository) GetUserProfile(ctx context.Context, id int) (model.UserProfile, error) {
-	sql := `SELECT id,full_name,email,phone,profile_picture_url FROM users WHERE id = $1`
+	sql := `SELECT id,full_name,email,phone,profile_picture_url FROM users WHERE id = $1 AND deleted_at IS NULL`
 
 	args := []any{id}
 	var data model.UserProfile
