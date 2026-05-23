@@ -56,6 +56,10 @@ func (c *AuthController) Register(ctx *gin.Context) {
 			response.Error(ctx, 400, "Confirm Password is required")
 			return
 		}
+		if strings.Contains(err.Error(), "ConfirmPassword") {
+			response.Error(ctx, 400, "Password confirmation does not match")
+			return
+		}
 		if strings.Contains(err.Error(), "email") && strings.Contains(err.Error(), "validation") {
 			response.Error(ctx, 400, "invalid email format")
 			return
@@ -97,8 +101,8 @@ func (c *AuthController) Login(ctx *gin.Context) {
 	}
 	res, err := c.authService.Login(ctx.Request.Context(), body)
 	if err != nil {
-		response.Error(ctx, 500, err.Error())
+		response.Error(ctx, 500, "internal server error")
 		return
 	}
-	response.Success(ctx, 201, fmt.Sprintf("Login Complete, Welcome %s", res.FullName), res)
+	response.Success(ctx, 200, fmt.Sprintf("Login Complete, Welcome %s", res.FullName), res)
 }
