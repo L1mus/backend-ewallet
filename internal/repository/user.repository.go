@@ -74,22 +74,19 @@ func (r *UserRepository) GetReceiver(ctx context.Context, id int, req dto.Receiv
 	sb.WriteString(`ORDER BY full_name ASC`)
 
 	limit := 10
-	var offset int8
+	page := 1
 	if req.Page != "" {
-		page, _ := strconv.Atoi(req.Page)
-		if page < 0 {
-			page = 1
-			offset = int8((page - 1) * limit)
-		} else {
-			offset = int8((page - 1) * limit)
+		if p, err := strconv.Atoi(req.Page); err == nil && p > 0 {
+			page = p
 		}
-		_, err := fmt.Fprintf(&sb, `LIMIT %d OFFSET %d`, argCount, argCount+1)
-		if err != nil {
-			return nil, err
-		}
-		args = append(args, limit, offset)
-
 	}
+	offset := (page - 1) * limit
+
+	_, err := fmt.Fprintf(&sb, ` LIMIT $%d OFFSET $%d`, argCount, argCount+1)
+	if err != nil {
+		return nil, err
+	}
+	args = append(args, limit, offset)
 
 	sql := sb.String()
 	fmt.Println(sql)
