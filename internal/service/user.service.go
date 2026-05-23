@@ -126,12 +126,6 @@ func (s *UserService) CheckPin(ctx context.Context, id int) error {
 	return nil
 }
 
-func (s *UserService) GetTransactionHistory(ctx context.Context, id int, search string, limit int8, page int8) {
-	//offset := (page - 1) * limit
-	//data, err := s.userRepository.GetTransactionHistory(ctx, id, search, limit, offset)
-	//if err != nil {
-	//	return
-	//}
 func (s *UserService) GetTransactionHistory(ctx context.Context, id int, req dto.TransactionHistoryQuery) ([]dto.GetTransactionHistoryDTO, dto.PaginationMetaData, error) {
 	data, err := s.userRepository.GetTransactionHistory(ctx, id, req)
 	if err != nil {
