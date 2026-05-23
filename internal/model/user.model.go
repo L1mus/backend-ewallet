@@ -73,4 +73,5 @@ type GetTransactionHistory struct {
 	Description       string    `db:"transfer_description"`
 	ReceiverName      string    `db:"receiver_name"`
 	PaymentMethodName string    `db:"payment_method_name"`
+	TotalCount        int       `db:"total_count"`
 }
