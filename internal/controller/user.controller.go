@@ -99,3 +99,22 @@ func (c *UserController) GetTransactionReport(ctx *gin.Context) {
 	}
 	response.Success(ctx, 200, "Get data success", res)
 }
+
+func (c *UserController) GetTransactionHistory(ctx *gin.Context) {
+
+	var req dto.TransactionHistoryQuery
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		response.Error(ctx, 400, "bad request")
+	}
+
+	token, _ := ctx.Get("claims")
+	claims := token.(pkg.Claims)
+
+	res, metaData, err := c.userService.GetTransactionHistory(ctx.Request.Context(), claims.Id, req)
+	if err != nil {
+		response.Error(ctx, 500, "internal server")
+		return
+	}
+
+	response.SuccessWithMetaData(ctx, 200, "Get data success", res, metaData)
+}
