@@ -141,8 +141,19 @@ func (r *UserRepository) GetPin(ctx context.Context, id int) (model.User, error)
 }
 
 func (r *UserRepository) GetTransactionHistory(ctx context.Context, id int, search string, limit int8, offset int8) ([]model.GetTransactionHistory, error) {
+func (r *UserRepository) GetTransactionHistory(ctx context.Context, id int, req dto.TransactionHistoryQuery) ([]model.GetTransactionHistory, error) {
+	limit := 10
+	page := 1
+	if req.Page != "" {
+		if p, _ := strconv.Atoi(req.Page); p > 0 {
+			page = p
+		}
+	}
+	offset := (page - 1) * limit
+	search := "%" + req.Search + "%"
+
 	sql := `
-			SELECT  t.id AS transaction_id, t.amount, t.type, t.activity_type, t.status, t.created_at, td.description AS transfer_description, u_receiver.full_name AS receiver_name, pm.name AS payment_method_name
+			SELECT  t.id AS transaction_id, t.amount, t.type, t.activity_type, t.status, t.created_at, td.description AS transfer_description, u_receiver.full_name AS receiver_name, pm.name AS payment_method_name,COUNT(*) OVER() AS total_count
 			FROM transactions t
 			LEFT JOIN transfer_details td ON t.id = td.transaction_id
 			LEFT JOIN users u_receiver ON td.receiver_id = u_receiver.id
@@ -165,7 +176,7 @@ func (r *UserRepository) GetTransactionHistory(ctx context.Context, id int, sear
 	defer rows.Close()
 	for rows.Next() {
 		var transaction model.GetTransactionHistory
-		if err := rows.Scan(&transaction.TransactionID, &transaction.Amount, &transaction.Amount, &transaction.Type, &transaction.ActivityType, &transaction.Status, &transaction.CreatedAt, &transaction.PaymentMethodName, &transaction.ReceiverName); err != nil {
+		if err := rows.Scan(&transaction.TransactionID, &transaction.Amount, &transaction.Type, &transaction.ActivityType, &transaction.Status, &transaction.CreatedAt, &transaction.PaymentMethodName, &transaction.ReceiverName, &transaction.TotalCount); err != nil {
 			return nil, err
 		}
 		transactions = append(transactions, transaction)
