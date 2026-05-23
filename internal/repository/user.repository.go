@@ -188,3 +188,18 @@ func (r *UserRepository) GetTransactionHistory(ctx context.Context, id int, req 
 	}
 	return transactions, nil
 }
+
+func (r *UserRepository) GetHashPassword(ctx context.Context, id int) (model.User, error) {
+	sql := `SELECT hash_password FROM users WHERE id = $1 AND deleted_at IS NULL`
+	var user model.User
+	if err := r.db.QueryRow(ctx, sql, id).Scan(&user.HashPassword); err != nil {
+		return model.User{}, err
+	}
+	return user, nil
+}
+
+func (r *UserRepository) UpdatePassword(ctx context.Context, id int, hashPassword string) error {
+	sql := `UPDATE users SET hash_password = $1, updated_at = NOW() WHERE id = $2`
+	_, err := r.db.Exec(ctx, sql, hashPassword, id)
+	return err
+}
