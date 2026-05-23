@@ -13,17 +13,15 @@ type LoginRequest struct {
 }
 
 type GetTransactionsReportRequest struct {
-	Period string `json:"period" example:"month"`
+	Period string `form:"period" binding:"required,oneof=week month year" example:"month"`
 }
 
-type TransferQuery struct {
-	Page   string `json:"page" example:"1"`
-	Search string `json:"search" example:"John Doe"`
+type TransactionHistoryQuery struct {
+	Page   string `form:"page" default:"1" example:"1"`
+	Search string `form:"search" example:"John Doe"`
 }
 
 type ReceiverQuery struct {
-	Page   string `json:"page" example:"1"`
-	Search string `json:"search" example:"John Doe"`
 	Page   string `form:"page" default:"1" example:"1"`
 	Search string `form:"search" example:"John Doe"`
 }
