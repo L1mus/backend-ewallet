@@ -88,3 +88,15 @@ type PaginationMetaData struct {
 	NextLink   string `json:"next_page,omitempty"`
 	PrevLink   string `json:"prev_page,omitempty"`
 }
+
+type GetTransactionHistoryDTO struct {
+	TransactionID     int       `json:"transaction_id"`
+	Amount            float32   `json:"amount"`
+	Type              string    `json:"type"`
+	ActivityType      string    `json:"activity_type"`
+	Status            string    `json:"status"`
+	CreatedAt         time.Time `json:"created_at"`
+	Description       string    `json:"description"`
+	ReceiverName      string    `json:"receiver_name"`
+	PaymentMethodName string    `json:"payment_method_name"`
+}
