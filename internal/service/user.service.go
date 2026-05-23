@@ -190,4 +190,21 @@ func (s *UserService) EditPin(ctx context.Context, id int, req dto.EditPinReques
 
 	return s.userRepository.UpdatePin(ctx, id, hashNewPin)
 }
+
+func (s *UserService) EditPassword(ctx context.Context, id int, req dto.EditPasswordRequest) error {
+	data, err := s.userRepository.GetHashPassword(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	var hc pkg.HashConfig
+	if err := hc.Compare(req.CurrentPassword, data.HashPassword); err != nil {
+		return appError.WrongPassword
+	}
+
+	hc.UseRecommended()
+	hashNewPassword := hc.GenHash(req.NewPassword)
+
+	return s.userRepository.UpdatePassword(ctx, id, hashNewPassword)
+}
 }
