@@ -59,19 +59,29 @@ func (s *UserService) GetUserDashboard(ctx context.Context, id int) (dto.GetUser
 	}, nil
 }
 
-func (s *UserService) FindReceiver(ctx context.Context, id int, req dto.ReceiverQuery) ([]dto.FindReceiverDTO, int, int, error) {
-	totalData, totalPage, err := s.userRepository.GetTotalPageReceiver(ctx, id, req)
-	fmt.Println("check out ")
-
+func (s *UserService) FindReceiver(ctx context.Context, id int, req dto.ReceiverQuery) ([]dto.FindReceiverDTO, dto.PaginationMetaData, error) {
+	data, err := s.userRepository.GetReceiver(ctx, id, req)
 	if err != nil {
-		return nil, 0, 0, err
+		return nil, dto.PaginationMetaData{}, err
 	}
 	data, err := s.userRepository.GetReceiver(ctx, id, req)
 
-	if err != nil {
-		return nil, 0, 0, err
+	if len(data) == 0 {
+		return []dto.FindReceiverDTO{}, dto.PaginationMetaData{}, nil
 	}
+
+	totalData := data[0].TotalCount
+	limit := 10
+	totalPage := int(math.Ceil(float64(totalData) / float64(limit)))
+
+	page, err := strconv.Atoi(req.Page)
+	if err != nil {
+		return nil, dto.PaginationMetaData{}, err
+	}
+
 	var users []dto.FindReceiverDTO
+	prevLink := fmt.Sprintf("users/?search=%s&page=%s", req.Search, page-1)
+	nextLink := fmt.Sprintf("users/?search=%s&page=%s", req.Search, page+1)
 	for _, user := range data {
 		users = append(users, dto.FindReceiverDTO{
 			Id:                user.Id,
@@ -81,7 +91,13 @@ func (s *UserService) FindReceiver(ctx context.Context, id int, req dto.Receiver
 			IsVerified:        user.IsVerified,
 		})
 	}
-	return users, totalData, totalPage, nil
+	metaDataPAgination := dto.PaginationMetaData{
+		TotalPages: totalPage,
+		TotalData:  totalData,
+		NextLink:   nextLink,
+		PrevLink:   prevLink,
+	}
+	return users, metaDataPAgination, nil
 }
 
 func (s *UserService) GetTransactionReport(ctx context.Context, id int, period string) ([]dto.GetTransactionReportDTO, error) {
