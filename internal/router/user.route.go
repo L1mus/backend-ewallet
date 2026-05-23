@@ -21,6 +21,7 @@ func UserRouter(router *gin.Engine, db *pgxpool.Pool) {
 	userRouter.GET("/report", middleware.VerifyToken, userController.GetTransactionReport)
 	userRouter.GET("/transfer", middleware.VerifyToken, userController.FindReceiver)
 	userRouter.GET("/transactions", middleware.VerifyToken, userController.GetTransactionHistory)
+	userRouter.PATCH("/profile", middleware.VerifyToken, userController.EditProfile)
 	userRouter.PATCH("/pin", middleware.VerifyToken, userController.EditPin)
 	userRouter.PATCH("/password", middleware.VerifyToken, userController.EditPassword)
 }
