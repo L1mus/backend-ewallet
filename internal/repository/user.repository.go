@@ -64,14 +64,15 @@ func (r *UserRepository) GetReceiver(ctx context.Context, id int, req dto.Receiv
 	args = append(args, id)
 	argCount++
 	if req.Search != "" {
-		_, err := fmt.Fprintf(&sb, `AND (full_name ILIKE %%$%d OR phone  ILIKE %%$%d)`, argCount, argCount)
+		_, err := fmt.Fprintf(&sb, `AND (full_name ILIKE  $%d  OR phone  ILIKE $%d )`, argCount, argCount)
 		if err != nil {
 			return nil, err
 		}
-		args = append(args, req.Search)
+		args = append(args, "%"+req.Search+"%")
 		argCount++
 	}
-	sb.WriteString(`ORDER BY full_name ASC;`)
+	sb.WriteString(`ORDER BY full_name ASC`)
+
 	limit := 10
 	var offset int8
 	if req.Page != "" {
@@ -108,43 +109,6 @@ func (r *UserRepository) GetReceiver(ctx context.Context, id int, req dto.Receiv
 	}
 	return data, nil
 }
-
-func (r *UserRepository) GetTotalPageReceiver(ctx context.Context, id int, req dto.ReceiverQuery) (int, int, error) {
-	var sb strings.Builder
-	var args []any
-	argCount := 1
-
-	sb.WriteString(`
-			SELECT COUNT(DISTINCT id)
-			FROM users
-			WHERE deleted_at IS NULL
-			  AND id != $1
-			  `)
-	args = append(args, id)
-	argCount++
-
-	if req.Search != "" {
-		_, err := fmt.Fprintf(&sb, `AND (u.full_name ILIKE %%$%d OR u.phone  ILIKE %%$%d)`, argCount, argCount)
-		if err != nil {
-			return 0, 0, err
-		}
-		args = append(args, req.Search)
-	}
-
-	var totalReceiver int
-	sql := sb.String()
-	err := r.db.QueryRow(ctx, sql, args...).Scan(&totalReceiver)
-	if err != nil {
-		return 0, 0, err
-	}
-	receiverPerPage := 10
-	totalPage := int(math.Ceil(float64(totalReceiver) / float64(receiverPerPage)))
-	return totalReceiver, totalPage, nil
-}
-
-//func (r *UserRepository) GetAllPagination(ctx context.Context, pagination int) {
-//
-//}
 
 func (r *UserRepository) GetTransactionReport(ctx context.Context, id int, timePeriod string) ([]model.GetTransactionReport, error) {
 	sql := `
