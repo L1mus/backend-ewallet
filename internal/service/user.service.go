@@ -221,4 +221,65 @@ func (s *UserService) EditPassword(ctx context.Context, id int, req dto.EditPass
 
 	return s.userRepository.UpdatePassword(ctx, id, hashNewPassword)
 }
+
+func (s *UserService) UploadProfilePicture(ctx context.Context, userID int, fileHeader *multipart.FileHeader) (string, error) {
+	if fileHeader.Size > 2*1024*1024 {
+		return "", appError.FileTooLarge
+	}
+
+	file, err := fileHeader.Open()
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	buf := make([]byte, 512)
+	if _, err := file.Read(buf); err != nil {
+		return "", err
+	}
+
+	mimeType := http.DetectContentType(buf)
+
+	allowedTypes := map[string]string{
+		"image/jpeg": ".jpg",
+		"image/png":  ".png",
+	}
+	ext, allowed := allowedTypes[mimeType]
+	if !allowed {
+		return "", appError.FileTypeNotAllowed
+	}
+
+	oldProfile, err := s.userRepository.GetUserProfile(ctx, userID)
+	if err == nil && oldProfile.ProfilePictureURL != nil && *oldProfile.ProfilePictureURL != "" {
+		oldPath := filepath.Join("public", *oldProfile.ProfilePictureURL)
+		err := os.Remove(oldPath)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	filename := fmt.Sprintf("user_%d_%d%s", userID, time.Now().UnixNano(), ext)
+	savePath := filepath.Join("public", "img", "profiles", filename)
+
+	if _, err := file.Seek(0, io.SeekStart); err != nil {
+		return "", err
+	}
+
+	dst, err := os.Create(savePath)
+	if err != nil {
+		return "", err
+	}
+	defer dst.Close()
+
+	if _, err := io.Copy(dst, file); err != nil {
+		return "", err
+	}
+
+	publicURL := fmt.Sprintf("/img/profiles/%s", filename)
+	if err := s.userRepository.UpdateProfilePictureURL(ctx, userID, publicURL); err != nil {
+		os.Remove(savePath)
+		return "", err
+	}
+
+	return publicURL, nil
 }
