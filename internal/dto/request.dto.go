@@ -8,8 +8,8 @@ type RegisterRequest struct {
 }
 
 type LoginRequest struct {
-	Email    string `json:"email" example:"example@mail.com"`
-	Password string `json:"password" example:"example123"`
+	Email    string `json:"email"  binding:"required,email" example:"example@mail.com"`
+	Password string `json:"password" binding:"required" example:"example123"`
 }
 
 type GetTransactionsReportRequest struct {
