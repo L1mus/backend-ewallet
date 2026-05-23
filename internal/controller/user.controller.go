@@ -88,7 +88,7 @@ func (c *UserController) GetTransactionReport(ctx *gin.Context) {
 	token, _ := ctx.Get("claims")
 	claims := token.(pkg.Claims)
 	var body dto.GetTransactionsReportRequest
-	if err := ctx.ShouldBindWith(&body, binding.JSON); err != nil {
+	if err := ctx.ShouldBindQuery(&body); err != nil {
 		response.Error(ctx, 400, "bad request")
 		return
 	}
