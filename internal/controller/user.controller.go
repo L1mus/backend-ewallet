@@ -75,21 +75,13 @@ func (c *UserController) FindReceiver(ctx *gin.Context) {
 	//page, _ := strconv.Atoi(strPage)
 	//limit, _ := strconv.Atoi(strLimit)
 
-	res, totalData, totalPage, err := c.userService.FindReceiver(ctx, claims.Id, req)
-
+	res, metaData, err := c.userService.FindReceiver(ctx.Request.Context(), claims.Id, req)
 	if err != nil {
-		response.Error(ctx, 500, "internal serve")
+		response.Error(ctx, 500, "internal server")
 		return
 	}
 
-	prevLink := fmt.Sprintf("users/?search=%s&page=%s", page-1)
-	nextLink := fmt.Sprintf("users/?search=%s&page=%s", page+1)
-	response.SuccessWithMetaData(ctx, 200, "Get data success", res, dto.PaginationMetaData{
-		TotalPages: totalPage,
-		TotalData:  totalData,
-		NextLink:   nextLink,
-		PrevLink:   prevLink,
-	})
+	response.SuccessWithMetaData(ctx, 200, "Get data success", res, metaData)
 }
 
 func (c *UserController) GetTransactionReport(ctx *gin.Context) {
