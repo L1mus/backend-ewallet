@@ -1,8 +1,9 @@
 package controller
 
 import (
-	"strconv"
+	"errors"
 
+	"github.com/L1mus/backend-ewallet/internal/appError"
 	"github.com/L1mus/backend-ewallet/internal/dto"
 	"github.com/L1mus/backend-ewallet/internal/service"
 	"github.com/L1mus/backend-ewallet/pkg"
@@ -117,4 +118,98 @@ func (c *UserController) GetTransactionHistory(ctx *gin.Context) {
 	}
 
 	response.SuccessWithMetaData(ctx, 200, "Get data success", res, metaData)
+}
+
+func (c *UserController) EditProfile(ctx *gin.Context) {
+	token, _ := ctx.Get("claims")
+	claims := token.(pkg.Claims)
+
+	var body dto.EditProfileRequest
+	if err := ctx.ShouldBindWith(&body, binding.JSON); err != nil {
+		response.Error(ctx, 400, err.Error())
+		return
+	}
+
+	err := c.userService.EditProfile(ctx.Request.Context(), claims.Id, body)
+	if err != nil {
+		if errors.Is(err, appError.PhoneAlreadyExists) {
+			response.Error(ctx, 400, err.Error())
+			return
+		}
+		response.Error(ctx, 500, "internal server error")
+		return
+	}
+
+	response.Success(ctx, 200, "Profile updated successfully", nil)
+}
+
+func (c *UserController) EditPin(ctx *gin.Context) {
+	token, _ := ctx.Get("claims")
+	claims := token.(pkg.Claims)
+
+	var body dto.EditPinRequest
+	if err := ctx.ShouldBindWith(&body, binding.JSON); err != nil {
+		response.Error(ctx, 400, err.Error())
+		return
+	}
+
+	err := c.userService.EditPin(ctx.Request.Context(), claims.Id, body)
+	if err != nil {
+		if errors.Is(err, appError.WrongPin) || errors.Is(err, appError.EmptyPin) {
+			response.Error(ctx, 400, err.Error())
+			return
+		}
+		response.Error(ctx, 500, "internal server error")
+		return
+	}
+
+	response.Success(ctx, 200, "PIN updated successfully", nil)
+}
+
+func (c *UserController) EditPassword(ctx *gin.Context) {
+	token, _ := ctx.Get("claims")
+	claims := token.(pkg.Claims)
+
+	var body dto.EditPasswordRequest
+	if err := ctx.ShouldBindWith(&body, binding.JSON); err != nil {
+		response.Error(ctx, 400, err.Error())
+		return
+	}
+
+	err := c.userService.EditPassword(ctx.Request.Context(), claims.Id, body)
+	if err != nil {
+		if errors.Is(err, appError.WrongPassword) {
+			response.Error(ctx, 400, err.Error())
+			return
+		}
+		response.Error(ctx, 500, "internal server error")
+		return
+	}
+
+	response.Success(ctx, 200, "Password updated successfully", nil)
+}
+
+func (c *UserController) UploadProfilePicture(ctx *gin.Context) {
+	token, _ := ctx.Get("claims")
+	claims := token.(pkg.Claims)
+
+	fileHeader, err := ctx.FormFile("picture")
+	if err != nil {
+		response.Error(ctx, 400, "picture file is required")
+		return
+	}
+
+	url, err := c.userService.UploadProfilePicture(ctx.Request.Context(), claims.Id, fileHeader)
+	if err != nil {
+		if errors.Is(err, appError.FileTooLarge) || errors.Is(err, appError.FileTypeNotAllowed) {
+			response.Error(ctx, 422, err.Error())
+			return
+		}
+		response.Error(ctx, 500, "internal server error")
+		return
+	}
+
+	response.Success(ctx, 200, "Profile picture updated", gin.H{
+		"url": url,
+	})
 }

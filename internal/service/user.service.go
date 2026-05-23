@@ -2,11 +2,22 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"io"
+	"math"
+	"mime/multipart"
+	"net/http"
+	"os"
+	"path/filepath"
+	"strconv"
+	"time"
 
 	"github.com/L1mus/backend-ewallet/internal/appError"
 	"github.com/L1mus/backend-ewallet/internal/dto"
 	"github.com/L1mus/backend-ewallet/internal/repository"
+	"github.com/L1mus/backend-ewallet/pkg"
+	"github.com/jackc/pgx/v5"
 )
 
 type UserService struct {
@@ -22,7 +33,10 @@ func NewUserService(userRepository *repository.UserRepository) *UserService {
 func (s *UserService) GetUserProfile(ctx context.Context, id int) (dto.GetUserProfileDTO, error) {
 	data, err := s.userRepository.GetUserProfile(ctx, id)
 	if err != nil {
-		return dto.GetUserProfileDTO{}, appError.UserNotFound
+		if errors.Is(err, pgx.ErrNoRows) {
+			return dto.GetUserProfileDTO{}, appError.UserNotFound
+		}
+		return dto.GetUserProfileDTO{}, err
 	}
 	return dto.GetUserProfileDTO{
 		Id:                data.Id,
