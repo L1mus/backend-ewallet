@@ -46,7 +46,7 @@ func (c *UserController) GetUserProfile(ctx *gin.Context) {
 func (c *UserController) GetUserDashboard(ctx *gin.Context) {
 	token, _ := ctx.Get("claims")
 	claims := token.(pkg.Claims)
-	res, err := c.userService.GetUserDashboard(ctx, claims.Id)
+	res, err := c.userService.GetUserDashboard(ctx.Request.Context(), claims.Id)
 	if err != nil {
 		response.Error(ctx, 500, "internal server error")
 	}
@@ -81,10 +81,6 @@ func (c *UserController) FindReceiver(ctx *gin.Context) {
 		response.Error(ctx, 500, "internal serve")
 		return
 	}
-	page, err := strconv.Atoi(req.Page)
-	if err != nil {
-		response.Error(ctx, 500, "internal server")
-	}
 
 	prevLink := fmt.Sprintf("users/?search=%s&page=%s", page-1)
 	nextLink := fmt.Sprintf("users/?search=%s&page=%s", page+1)
@@ -104,7 +100,7 @@ func (c *UserController) GetTransactionReport(ctx *gin.Context) {
 		response.Error(ctx, 400, "bad request")
 		return
 	}
-	res, err := c.userService.GetTransactionReport(ctx, claims.Id, body.Period)
+	res, err := c.userService.GetTransactionReport(ctx.Request.Context(), claims.Id, body.Period)
 	if err != nil {
 		response.Error(ctx, 500, "internal server error")
 		return
