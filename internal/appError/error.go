@@ -12,4 +12,6 @@ var (
 	WrongPin           = errors.New("wrong pin")
 	WrongPassword      = errors.New("wrong password")
 	PhoneAlreadyExists = errors.New("phone number already used")
+	FileTooLarge       = errors.New("file size exceeds 2MB limit")
+	FileTypeNotAllowed = errors.New("only jpg, png, and webp are allowed")
 )
