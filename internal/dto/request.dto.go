@@ -24,4 +24,7 @@ type TransferQuery struct {
 type ReceiverQuery struct {
 	Page   string `json:"page" example:"1"`
 	Search string `json:"search" example:"John Doe"`
+	Page   string `form:"page" default:"1" example:"1"`
+	Search string `form:"search" example:"John Doe"`
+}
 }
