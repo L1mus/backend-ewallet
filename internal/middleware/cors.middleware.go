@@ -11,7 +11,7 @@ import (
 func CORSMiddleware(ctx *gin.Context) {
 	origin := ctx.GetHeader("Origin")
 
-	AllowOrigins := []string{"http://localhost:5173"}
+	AllowOrigins := []string{os.Getenv("ALLOWED_ORIGINS")}
 	AllowHeaders := []string{"Origin", "Content-Type", "Authorization"}
 	AllowMethods := []string{http.MethodGet, http.MethodPost, http.MethodPatch, http.MethodDelete, http.MethodOptions}
 
