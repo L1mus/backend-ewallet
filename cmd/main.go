@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 
 	_ "github.com/L1mus/backend-ewallet/docs"
 	"github.com/L1mus/backend-ewallet/internal/config"
@@ -32,6 +33,9 @@ import (
 func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Fatalf("Error loading env. \ncause: %s", err.Error())
+	}
+	if err := os.MkdirAll(filepath.Join("public", "img", "profiles"), os.ModePerm); err != nil {
+		log.Fatalf("Failed to create upload directory: %s", err.Error())
 	}
 	// inisialisasi
 	// gin.New()
