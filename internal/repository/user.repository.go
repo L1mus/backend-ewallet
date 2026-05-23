@@ -89,7 +89,6 @@ func (r *UserRepository) GetReceiver(ctx context.Context, id int, req dto.Receiv
 	args = append(args, limit, offset)
 
 	sql := sb.String()
-	fmt.Println(sql)
 	rows, err := r.db.Query(ctx, sql, args...)
 	if err != nil {
 		return nil, err
@@ -99,7 +98,7 @@ func (r *UserRepository) GetReceiver(ctx context.Context, id int, req dto.Receiv
 	var data []model.FindReceiver
 	for rows.Next() {
 		var user model.FindReceiver
-		if err := rows.Scan(&user.Id, &user.FullName, &user.Phone, &user.ProfilePictureUrl, &user.IsVerified); err != nil {
+		if err := rows.Scan(&user.Id, &user.FullName, &user.Phone, &user.ProfilePictureUrl, &user.IsVerified, &user.TotalCount); err != nil {
 			return nil, err
 		}
 		data = append(data, user)

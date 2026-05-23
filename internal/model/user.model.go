@@ -54,6 +54,7 @@ type FindReceiver struct {
 	Phone             string `db:"phone"`
 	ProfilePictureUrl string `db:"profile_picture_url"`
 	IsVerified        bool   `db:"is_verified"`
+	TotalCount        int    `db:"total_count"`
 }
 
 type GetTransactionReport struct {
