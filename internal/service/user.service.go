@@ -170,4 +170,24 @@ func (s *UserService) GetTransactionHistory(ctx context.Context, id int, req dto
 	return users, metaDataPAgination, nil
 }
 
+func (s *UserService) EditPin(ctx context.Context, id int, req dto.EditPinRequest) error {
+	data, err := s.userRepository.GetPin(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	if data.HashPin == nil {
+		return appError.EmptyPin
+	}
+
+	var hc pkg.HashConfig
+	if err := hc.Compare(req.CurrentPin, *data.HashPin); err != nil {
+		return appError.WrongPin
+	}
+
+	hc.UseRecommended()
+	hashNewPin := hc.GenHash(req.NewPin)
+
+	return s.userRepository.UpdatePin(ctx, id, hashNewPin)
+}
 }
