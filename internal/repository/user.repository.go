@@ -189,6 +189,18 @@ func (r *UserRepository) GetTransactionHistory(ctx context.Context, id int, req 
 	return transactions, nil
 }
 
+func (r *UserRepository) UpdateProfile(ctx context.Context, id int, req dto.EditProfileRequest) error {
+	sql := `
+        UPDATE users
+        SET full_name           = $1,
+            phone               = $2,
+            profile_picture_url = $3,
+            updated_at          = NOW()
+        WHERE id = $4`
+	_, err := r.db.Exec(ctx, sql, req.FullName, req.Phone, req.ProfilePictureURL, id)
+	return err
+}
+
 func (r *UserRepository) GetHashPassword(ctx context.Context, id int) (model.User, error) {
 	sql := `SELECT hash_password FROM users WHERE id = $1 AND deleted_at IS NULL`
 	var user model.User
@@ -201,5 +213,20 @@ func (r *UserRepository) GetHashPassword(ctx context.Context, id int) (model.Use
 func (r *UserRepository) UpdatePassword(ctx context.Context, id int, hashPassword string) error {
 	sql := `UPDATE users SET hash_password = $1, updated_at = NOW() WHERE id = $2`
 	_, err := r.db.Exec(ctx, sql, hashPassword, id)
+	return err
+}
+
+func (r *UserRepository) CheckPhoneTaken(ctx context.Context, id int, phone string) (bool, error) {
+	var count int
+	sql := `SELECT COUNT(1) FROM users WHERE phone = $1 AND id != $2 AND deleted_at IS NULL`
+	if err := r.db.QueryRow(ctx, sql, phone, id).Scan(&count); err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
+
+func (r *UserRepository) UpdateProfilePictureURL(ctx context.Context, id int, url string) error {
+	sql := `UPDATE users SET profile_picture_url = $1, updated_at = NOW() WHERE id = $2`
+	_, err := r.db.Exec(ctx, sql, url, id)
 	return err
 }
