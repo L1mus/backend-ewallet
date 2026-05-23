@@ -64,7 +64,6 @@ func (s *UserService) FindReceiver(ctx context.Context, id int, req dto.Receiver
 	if err != nil {
 		return nil, dto.PaginationMetaData{}, err
 	}
-	data, err := s.userRepository.GetReceiver(ctx, id, req)
 
 	if len(data) == 0 {
 		return []dto.FindReceiverDTO{}, dto.PaginationMetaData{}, nil
@@ -133,4 +132,48 @@ func (s *UserService) GetTransactionHistory(ctx context.Context, id int, search 
 	//if err != nil {
 	//	return
 	//}
+func (s *UserService) GetTransactionHistory(ctx context.Context, id int, req dto.TransactionHistoryQuery) ([]dto.GetTransactionHistoryDTO, dto.PaginationMetaData, error) {
+	data, err := s.userRepository.GetTransactionHistory(ctx, id, req)
+	if err != nil {
+		return nil, dto.PaginationMetaData{}, err
+	}
+
+	if len(data) == 0 {
+		return []dto.GetTransactionHistoryDTO{}, dto.PaginationMetaData{}, nil
+	}
+
+	totalData := data[0].TotalCount
+	limit := 10
+	totalPage := int(math.Ceil(float64(totalData) / float64(limit)))
+
+	page, err := strconv.Atoi(req.Page)
+	if err != nil {
+		return nil, dto.PaginationMetaData{}, err
+	}
+
+	var users []dto.GetTransactionHistoryDTO
+	prevLink := fmt.Sprintf("transactions/?search=%s&page=%s", req.Search, page-1)
+	nextLink := fmt.Sprintf("transactions/?search=%s&page=%s", req.Search, page+1)
+	for _, user := range data {
+		users = append(users, dto.GetTransactionHistoryDTO{
+			TransactionID:     user.TransactionID,
+			Amount:            user.Amount,
+			Type:              user.Type,
+			ActivityType:      user.ActivityType,
+			Status:            user.Status,
+			CreatedAt:         user.CreatedAt,
+			Description:       user.Description,
+			ReceiverName:      user.ReceiverName,
+			PaymentMethodName: user.PaymentMethodName,
+		})
+	}
+	metaDataPAgination := dto.PaginationMetaData{
+		TotalPages: totalPage,
+		TotalData:  totalData,
+		NextLink:   nextLink,
+		PrevLink:   prevLink,
+	}
+	return users, metaDataPAgination, nil
+}
+
 }
