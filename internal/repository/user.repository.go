@@ -35,11 +35,11 @@ func (r *UserRepository) GetUserProfile(ctx context.Context, id int) (model.User
 
 func (r *UserRepository) GetUserDashboard(ctx context.Context, id int) (model.UserDashboard, error) {
 	sql := `
-			SELECT  w.balance, SUM(CASE WHEN t.type = 'income' AND t.status = 'success' THEN t.amount ELSE 0 END) AS total_income, SUM(CASE WHEN t.type = 'expense' AND t.status = 'success' THEN t.amount ELSE 0 END) AS total_expense
+			SELECT  w.balance, COALESCE(SUM(CASE WHEN t.type = 'income' AND t.status = 'success' THEN t.amount ELSE 0 END), 0) AS total_income, COALESCE(SUM(CASE WHEN t.type = 'expense' AND t.status = 'success' THEN t.amount ELSE 0 END),0) AS total_expense
 			FROM wallet w
 			LEFT JOIN transactions t ON w.user_id = t.user_id
 			WHERE w.user_id = $1
-			GROUP BY w.balance`
+			GROUP BY w.user_id, w.balance`
 	args := []any{id}
 	var data model.UserDashboard
 	if err := r.db.QueryRow(ctx, sql, args...).Scan(&data.Balance, &data.TotalIncome, &data.TotalExpenses); err != nil {
@@ -57,8 +57,8 @@ func (r *UserRepository) GetReceiver(ctx context.Context, id int, req dto.Receiv
 	argCount := 1
 
 	sb.WriteString(`
-			SELECT id, full_name, phone, profile_picture_url, is_verified
-			FROM users 
+			SELECT id, full_name, COALESCE(phone, '') AS phone, COALESCE(profile_picture_url, '') AS profile_picture_url, is_verified, COUNT(*) OVER() AS total_count
+			FROM users
 			WHERE deleted_at IS NULL
 			  AND id != $1
 			  `)
