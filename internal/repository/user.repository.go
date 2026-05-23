@@ -140,7 +140,12 @@ func (r *UserRepository) GetPin(ctx context.Context, id int) (model.User, error)
 	return pin, nil
 }
 
-func (r *UserRepository) GetTransactionHistory(ctx context.Context, id int, search string, limit int8, offset int8) ([]model.GetTransactionHistory, error) {
+func (r *UserRepository) UpdatePin(ctx context.Context, id int, hashPin string) error {
+	sql := `UPDATE users SET hash_pin = $1, updated_at = NOW() WHERE id = $2`
+	_, err := r.db.Exec(ctx, sql, hashPin, id)
+	return err
+}
+
 func (r *UserRepository) GetTransactionHistory(ctx context.Context, id int, req dto.TransactionHistoryQuery) ([]model.GetTransactionHistory, error) {
 	limit := 10
 	page := 1
