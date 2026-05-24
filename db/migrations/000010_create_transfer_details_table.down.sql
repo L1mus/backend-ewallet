@@ -1,1 +1,1 @@
-DROP TABLE transfer_details CASCADE
+DROP TABLE transfer_details CASCADE;

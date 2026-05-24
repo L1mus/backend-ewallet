@@ -1,4 +1,4 @@
-CREATE TABLE favorite_contacts (
+CREATE TABLE IF NOT EXISTS favorite_contacts (
     id  SERIAL PRIMARY KEY,
     user_id INT NOT NULL,
     favorite_user_id INT NOT NULL,

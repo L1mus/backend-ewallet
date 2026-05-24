@@ -1,1 +1,1 @@
-DROP TABLE forgot_password CASCADE
+DROP TABLE forgot_password CASCADE;

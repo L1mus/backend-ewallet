@@ -1,1 +1,1 @@
-DROP TABLE oauth_user CASCADE
+DROP TABLE oauth_user CASCADE;

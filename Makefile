@@ -10,7 +10,10 @@ migrate-up:
 	@migrate -database $(DATABASE_URL) -path $(MIGRATION_PATH) up
 
 migrate-down:
-	@migrate -database $(DATABASE_URL) -path $(MIGRATION_PATH) down
+	@migrate -database $(DATABASE_URL) -path $(MIGRATION_PATH) down 1
+
+migrate-down-all:
+	@migrate -database $(DATABASE_URL) -path $(MIGRATION_PATH) down -all
 
 migrate-force:
 	@migrate -database $(DATABASE_URL) -path $(MIGRATION_PATH) force $(VERSION)

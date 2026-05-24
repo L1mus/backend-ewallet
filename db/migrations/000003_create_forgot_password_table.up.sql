@@ -1,5 +1,4 @@
-
-CREATE TABLE forgot_password (
+CREATE TABLE IF NOT EXISTS forgot_password (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULL,
     token VARCHAR(255) UNIQUE NOT NULL,

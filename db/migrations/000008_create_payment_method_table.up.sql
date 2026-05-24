@@ -1,4 +1,4 @@
-CREATE TABLE payment_method (
+CREATE TABLE IF NOT EXISTS payment_method (
     id SERIAL PRIMARY KEY,
     payment_category_id INT NOT NULL,
     name VARCHAR(50) NOT NULL UNIQUE,

@@ -1,4 +1,4 @@
-CREATE TABLE transactions (
+CREATE TABLE IF NOT EXISTS transactions (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULL,
     amount NUMERIC(15, 2) NOT NULL CHECK (amount > 0),

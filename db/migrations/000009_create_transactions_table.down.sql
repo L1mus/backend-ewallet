@@ -1,1 +1,1 @@
-DROP TABLE transactions CASCADE
+DROP TABLE transactions CASCADE;

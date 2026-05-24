@@ -1,1 +1,1 @@
-DROP TABLE reviews CASCADE
+DROP TABLE reviews CASCADE;

@@ -1,1 +1,1 @@
-DROP TABLE favorite_contacts CASCADE
+DROP TABLE favorite_contacts CASCADE;
