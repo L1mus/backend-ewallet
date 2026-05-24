@@ -19,6 +19,7 @@ func InitRouter(router *gin.Engine, db *pgxpool.Pool) {
 	// router.METHOD(endpoint, callback)
 	AuthRouter(router, db)
 	UserRouter(router, db)
+	TransactionRouter(router, db)
 
 	//fallback
 	router.NoRoute(func(ctx *gin.Context) {
