@@ -7,8 +7,8 @@ import (
 
 	"github.com/L1mus/backend-ewallet/internal/appError"
 	"github.com/L1mus/backend-ewallet/internal/dto"
+	"github.com/L1mus/backend-ewallet/internal/response"
 	"github.com/L1mus/backend-ewallet/internal/service"
-	"github.com/L1mus/backend-ewallet/response"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 )
