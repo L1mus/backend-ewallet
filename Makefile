@@ -14,3 +14,7 @@ migrate-down:
 
 migrate-force:
 	@migrate -database $(DATABASE_URL) -path $(MIGRATION_PATH) force $(VERSION)
+
+migrate-db-seed:
+	@echo "Run seeding data..."
+	go run db/seeds/seeder.go
