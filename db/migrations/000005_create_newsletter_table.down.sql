@@ -1,1 +1,1 @@
-DROP TABLE newsletter
+DROP TABLE newsletter CASCADE

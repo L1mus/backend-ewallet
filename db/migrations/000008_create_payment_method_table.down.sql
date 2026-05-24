@@ -1,1 +1,1 @@
-DROP TABLE payment_method
+DROP TABLE payment_method CASCADE
