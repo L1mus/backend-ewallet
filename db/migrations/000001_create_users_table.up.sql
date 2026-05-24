@@ -1,3 +1,29 @@
+CREATE TYPE oauth_provider AS ENUM (
+  'google',
+  'facebook'
+);
+
+CREATE TYPE subscribe_status AS ENUM (
+  'active',
+  'unsubscribe'
+);
+
+CREATE TYPE type_transaction AS ENUM (
+  'income',
+  'expense'
+);
+
+CREATE TYPE type_activity_transaction AS ENUM (
+  'transfer',
+  'topup'
+);
+
+CREATE TYPE status_transaction AS ENUM (
+  'pending',
+  'success',
+  'failed'
+);
+
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     full_name VARCHAR(100) NOT NULL,
