@@ -43,3 +43,10 @@ type EditProfileRequest struct {
 	Phone             *string `json:"phone"`
 	ProfilePictureURL *string `json:"profile_picture_url"`
 }
+
+type CreateTransferRequest struct {
+	ReceiverID  int     `json:"receiver_id"  binding:"required"`
+	Amount      float64 `json:"amount"       binding:"required,gt=0"`
+	Description string  `json:"description"`
+	Pin         string  `json:"pin"          binding:"required,len=6"`
+}
