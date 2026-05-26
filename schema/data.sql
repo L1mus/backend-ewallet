@@ -363,3 +363,5 @@ INSERT INTO favorite_contacts (user_id, favorite_user_id, created_at) VALUES
                                                                           (5, 2, NOW()),
                                                                           (5, 3, NOW()),
                                                                           (5, 4, NOW());
+
+
