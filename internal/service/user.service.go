@@ -143,7 +143,7 @@ func (s *UserService) CheckPin(ctx context.Context, id int) error {
 	return nil
 }
 
-func (s *UserService) GetTransactionHistory(ctx context.Context, id int, req dto.TransactionHistoryQuery) ([]dto.GetTransactionHistoryDTO, dto.PaginationMetaData, error) {
+func (s *UserService) GetTransactionHistory(ctx context.Context, id int, req dto.PageQuery) ([]dto.GetTransactionHistoryDTO, dto.PaginationMetaData, error) {
 	data, err := s.userRepository.GetTransactionHistory(ctx, id, req)
 	if err != nil {
 		return nil, dto.PaginationMetaData{}, err
