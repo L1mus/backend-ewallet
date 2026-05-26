@@ -72,15 +72,31 @@ func (s *UserService) FindReceiver(ctx context.Context, id int, req dto.Receiver
 	totalData := data[0].TotalCount
 	limit := 10
 	totalPage := int(math.Ceil(float64(totalData) / float64(limit)))
+	var page int
 
-	page, err := strconv.Atoi(req.Page)
-	if err != nil {
-		return nil, dto.PaginationMetaData{}, err
+	if req.Page == "" {
+		page = 1
+	} else {
+		page, err = strconv.Atoi(req.Page)
+		if err != nil {
+			return nil, dto.PaginationMetaData{}, err
+		}
 	}
 
 	var users []dto.FindReceiverDTO
-	prevLink := fmt.Sprintf("users/?search=%s&page=%s", req.Search, page-1)
-	nextLink := fmt.Sprintf("users/?search=%s&page=%s", req.Search, page+1)
+	var prevLink string
+	var nextLink string
+	if page == 1 {
+		prevLink = ""
+	} else {
+		prevLink = fmt.Sprintf("http://localhost:8080/users/transfer?search=%s&page=%d", req.Search, page-1)
+
+	}
+	if page == totalPage {
+		nextLink = ""
+	} else {
+		nextLink = fmt.Sprintf("http://localhost:8080/users/transfer?search=%s&page=%d", req.Search, page+1)
+	}
 	for _, user := range data {
 		users = append(users, dto.FindReceiverDTO{
 			Id:                user.Id,
