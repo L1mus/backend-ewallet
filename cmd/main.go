@@ -34,7 +34,7 @@ func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Fatalf("Error loading env. \ncause: %s", err.Error())
 	}
-	if err := os.MkdirAll(filepath.Join("public", "img", "profiles"), os.ModePerm); err != nil {
+	if err := os.MkdirAll(filepath.Join("public", "img"), os.ModePerm); err != nil {
 		log.Fatalf("Failed to create upload directory: %s", err.Error())
 	}
 	// inisialisasi
