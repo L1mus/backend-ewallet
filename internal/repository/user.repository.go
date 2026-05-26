@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 
@@ -47,7 +48,7 @@ func (r *UserRepository) GetUserDashboard(ctx context.Context, id int) (model.Us
 	return data, nil
 }
 
-func (r *UserRepository) GetReceiver(ctx context.Context, id int, req dto.ReceiverQuery) ([]model.FindReceiver, error) {
+func (r *UserRepository) GetReceiver(ctx context.Context, id int, req dto.PageQuery) ([]model.FindReceiver, error) {
 	//membuat string query dengan strings.builder
 	//args sebagai nilai yang akan dimasukan ke parameterization query
 	//variable count yang akan terus increment sesuai dengan panjang variable args
