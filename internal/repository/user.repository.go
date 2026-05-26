@@ -156,17 +156,50 @@ func (r *UserRepository) GetTransactionHistory(ctx context.Context, id int, req 
 			FROM transactions t
 			LEFT JOIN transfer_details td ON t.id = td.transaction_id
 			LEFT JOIN users u_receiver ON td.receiver_id = u_receiver.id
-			LEFT JOIN topup_details tp ON t.id = tp.transaction_id
-			LEFT JOIN payment_method pm ON tp.payment_method_id = pm.id
-			WHERE t.user_id = $1
-			  AND (
-				  u_receiver.full_name ILIKE '%' || $2 || '%' OR
-				  pm.name ILIKE '%' || $2 || '%' OR
-				  td.description ILIKE '%' || $2 || '%'
-			  )
-			ORDER BY t.created_at DESC
-			LIMIT $3 OFFSET $4;`
-	args := []any{id, search, limit, offset}
+			WHERE t.user_id = $1`)
+	argCount++
+	args = append(args, id)
+	if req.Search != "" {
+		sb.WriteString(`
+					AND (
+				  u_receiver.full_name ILIKE $2 OR
+				u_receiver.phone ILIKE $2
+			  )`)
+		argCount++
+		args = append(args, "%"+req.Search+"%")
+	}
+	sb.WriteString(` ORDER BY t.created_at DESC `)
+	limit := 10
+	page := 1
+	if req.Page != "" {
+		if p, _ := strconv.Atoi(req.Page); p > 0 {
+			page = p
+		}
+	}
+	offset := (page - 1) * limit
+	_, err := fmt.Fprintf(&sb, `LIMIT $%d OFFSET $%d;`, argCount, argCount+1)
+	if err != nil {
+		return nil, err
+	}
+	args = append(args, limit, offset)
+
+	//sql := `
+	//		SELECT  t.id AS transaction_id, t.amount, t.type, t.activity_type, t.status, t.created_at, td.description AS transfer_description, u_receiver.full_name AS receiver_name, pm.name AS payment_method_name,COUNT(*) OVER() AS total_count
+	//		FROM transactions t
+	//		LEFT JOIN transfer_details td ON t.id = td.transaction_id
+	//		LEFT JOIN users u_receiver ON td.receiver_id = u_receiver.id
+	//		LEFT JOIN topup_details tp ON t.id = tp.transaction_id
+	//		LEFT JOIN payment_method pm ON tp.payment_method_id = pm.id
+	//		WHERE t.user_id = $1
+	//		  AND (
+	//			  u_receiver.full_name ILIKE '%' || $2 || '%' OR
+	//			  pm.name ILIKE '%' || $2 || '%' OR
+	//			  td.description ILIKE '%' || $2 || '%'
+	//		  )
+	//		ORDER BY t.created_at DESC
+	//		LIMIT $3 OFFSET $4;`
+	sql := sb.String()
+	println(sql)
 	var transactions []model.GetTransactionHistory
 	rows, err := r.db.Query(ctx, sql, args...)
 	if err != nil {
