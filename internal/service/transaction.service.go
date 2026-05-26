@@ -32,14 +32,15 @@ func (s *TransactionService) CreateTransfer(ctx context.Context, senderID int, r
 		cek receiver ada
 		cek balance awal
 
-	//TRANSACTION
-	// mulai Begin
-	// defer Rollback
-	// catat transaksi expense untuk sender
-	// catat detail transfer (receiver & deskripsi)
-	// kurangi wallet sender
-	// tambah wallet receiver
-	// selesai Commit
+		TRANSACTION
+		mulai Begin
+		defer Rollback
+		catat transaksi expense untuk sender
+		catat detail transfer (receiver & deskripsi)
+		kurangi wallet sender
+		tambah wallet receiver
+		selesai Commit
+	*/
 
 	if senderID == req.ReceiverID {
 		return appError.SelfTransferNotAllowed
