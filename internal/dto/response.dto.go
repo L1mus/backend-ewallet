@@ -90,13 +90,12 @@ type PaginationMetaData struct {
 }
 
 type GetTransactionHistoryDTO struct {
-	TransactionID     int       `json:"transaction_id"`
-	Amount            float32   `json:"amount"`
-	Type              string    `json:"type"`
-	ActivityType      string    `json:"activity_type"`
-	Status            string    `json:"status"`
-	CreatedAt         time.Time `json:"created_at"`
-	Description       string    `json:"description"`
-	ReceiverName      string    `json:"receiver_name"`
-	PaymentMethodName string    `json:"payment_method_name"`
+	TransactionID     int     `json:"transaction_id"`
+	Amount            float32 `json:"amount"`
+	Type              string  `json:"type"`
+	ActivityType      string  `json:"activity_type"`
+	Status            string  `json:"status"`
+	ReceiverName      string  `json:"receiver_name"`
+	Phone             string  `json:"phone"`
+	ProfilePictureUrl string  `json:"profile_picture_url"`
 }
