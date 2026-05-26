@@ -60,7 +60,7 @@ func (s *UserService) GetUserDashboard(ctx context.Context, id int) (dto.GetUser
 	}, nil
 }
 
-func (s *UserService) FindReceiver(ctx context.Context, id int, req dto.ReceiverQuery) ([]dto.FindReceiverDTO, dto.PaginationMetaData, error) {
+func (s *UserService) FindReceiver(ctx context.Context, id int, req dto.PageQuery) ([]dto.FindReceiverDTO, dto.PaginationMetaData, error) {
 	data, err := s.userRepository.GetReceiver(ctx, id, req)
 	if err != nil {
 		return nil, dto.PaginationMetaData{}, err
