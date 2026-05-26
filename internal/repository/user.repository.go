@@ -147,19 +147,12 @@ func (r *UserRepository) UpdatePin(ctx context.Context, id int, hashPin string) 
 	return err
 }
 
-func (r *UserRepository) GetTransactionHistory(ctx context.Context, id int, req dto.TransactionHistoryQuery) ([]model.GetTransactionHistory, error) {
-	limit := 10
-	page := 1
-	if req.Page != "" {
-		if p, _ := strconv.Atoi(req.Page); p > 0 {
-			page = p
-		}
-	}
-	offset := (page - 1) * limit
-	search := "%" + req.Search + "%"
-
-	sql := `
-			SELECT  t.id AS transaction_id, t.amount, t.type, t.activity_type, t.status, t.created_at, td.description AS transfer_description, u_receiver.full_name AS receiver_name, pm.name AS payment_method_name,COUNT(*) OVER() AS total_count
+func (r *UserRepository) GetTransactionHistory(ctx context.Context, id int, req dto.PageQuery) ([]model.GetTransactionHistory, error) {
+	var sb strings.Builder
+	var args []any
+	argCount := 1
+	sb.WriteString(`
+			SELECT  t.id AS transaction_id, t.amount, t.type, t.activity_type, u_receiver.full_name AS receiver_name,u_receiver.phone AS phone_receiver,u_receiver.profile_picture_url,COUNT(*) OVER() AS total_count
 			FROM transactions t
 			LEFT JOIN transfer_details td ON t.id = td.transaction_id
 			LEFT JOIN users u_receiver ON td.receiver_id = u_receiver.id
@@ -182,11 +175,12 @@ func (r *UserRepository) GetTransactionHistory(ctx context.Context, id int, req 
 	defer rows.Close()
 	for rows.Next() {
 		var transaction model.GetTransactionHistory
-		if err := rows.Scan(&transaction.TransactionID, &transaction.Amount, &transaction.Type, &transaction.ActivityType, &transaction.Status, &transaction.CreatedAt, &transaction.PaymentMethodName, &transaction.ReceiverName, &transaction.TotalCount); err != nil {
+		if err := rows.Scan(&transaction.TransactionID, &transaction.Amount, &transaction.Type, &transaction.ActivityType, &transaction.ReceiverName, &transaction.Phone, &transaction.ProfilePictureUrl, &transaction.TotalCount); err != nil {
 			return nil, err
 		}
 		transactions = append(transactions, transaction)
 	}
+	log.Println(transactions)
 	return transactions, nil
 }
 
