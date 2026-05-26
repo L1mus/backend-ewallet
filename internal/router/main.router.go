@@ -17,6 +17,7 @@ func InitRouter(router *gin.Engine, db *pgxpool.Pool) {
 	//swagger docs
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	// router.METHOD(endpoint, callback)
+	router.Static("/img", "/public/img")
 	AuthRouter(router, db)
 	UserRouter(router, db)
 	TransactionRouter(router, db)
