@@ -19,15 +19,18 @@ import (
 	"github.com/L1mus/backend-ewallet/internal/repository"
 	"github.com/L1mus/backend-ewallet/pkg"
 	"github.com/jackc/pgx/v5"
+	"github.com/redis/go-redis/v9"
 )
 
 type UserService struct {
 	userRepository *repository.UserRepository
+	rdb            *redis.Client
 }
 
-func NewUserService(userRepository *repository.UserRepository) *UserService {
+func NewUserService(userRepository *repository.UserRepository, rdb *redis.Client) *UserService {
 	return &UserService{
 		userRepository: userRepository,
+		rdb:            rdb,
 	}
 }
 

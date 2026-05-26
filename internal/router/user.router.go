@@ -7,13 +7,14 @@ import (
 	"github.com/L1mus/backend-ewallet/internal/service"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/redis/go-redis/v9"
 )
 
-func UserRouter(router *gin.Engine, db *pgxpool.Pool) {
+func UserRouter(router *gin.Engine, db *pgxpool.Pool, rdb *redis.Client) {
 	userRouter := router.Group("/users")
 
 	userRepository := repository.NewUserRepository(db)
-	userService := service.NewUserService(userRepository)
+	userService := service.NewUserService(userRepository, rdb)
 	userController := controller.NewUserController(userService)
 
 	userRouter.GET("/profile", middleware.VerifyToken, userController.GetUserProfile)
