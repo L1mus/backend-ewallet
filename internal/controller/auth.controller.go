@@ -70,8 +70,10 @@ func (c *AuthController) Register(ctx *gin.Context) {
 
 	res, err := c.authService.Register(ctx.Request.Context(), body)
 	if err != nil {
-		if errors.Is(err, appError.EmailAlreadyExists) || errors.Is(err, appError.InvalidEmailFormat) {
+		if errors.Is(err, appError.InvalidEmailFormat) {
 			response.Error(ctx, 400, err.Error())
+		} else if errors.Is(err, appError.EmailAlreadyExists) {
+			response.Error(ctx, 409, err.Error())
 		} else {
 			response.Error(ctx, 500, err.Error())
 		}
@@ -101,6 +103,10 @@ func (c *AuthController) Login(ctx *gin.Context) {
 	}
 	res, err := c.authService.Login(ctx.Request.Context(), body)
 	if err != nil {
+		if errors.Is(err, appError.EmailOrPassWrong) {
+			response.Error(ctx, 400, err.Error())
+			return
+		}
 		response.Error(ctx, 500, "internal server error")
 		return
 	}
