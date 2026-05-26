@@ -2,6 +2,7 @@ package controller
 
 import (
 	"errors"
+	"log"
 
 	"github.com/L1mus/backend-ewallet/internal/appError"
 	"github.com/L1mus/backend-ewallet/internal/dto"
@@ -82,7 +83,7 @@ func (c *UserController) GetUserDashboard(ctx *gin.Context) {
 func (c *UserController) FindReceiver(ctx *gin.Context) {
 	// bentuk url users?search=&page
 	// binding request query
-	var req dto.ReceiverQuery
+	var req dto.PageQuery
 	if err := ctx.ShouldBindQuery(&req); err != nil {
 		response.Error(ctx, 400, "bad request")
 	}
@@ -155,7 +156,7 @@ func (c *UserController) GetTransactionReport(ctx *gin.Context) {
 // @Router       /users/transactions [get]
 func (c *UserController) GetTransactionHistory(ctx *gin.Context) {
 
-	var req dto.TransactionHistoryQuery
+	var req dto.PageQuery
 	if err := ctx.ShouldBindQuery(&req); err != nil {
 		response.Error(ctx, 400, "bad request")
 	}
@@ -164,6 +165,7 @@ func (c *UserController) GetTransactionHistory(ctx *gin.Context) {
 	claims := token.(pkg.Claims)
 
 	res, metaData, err := c.userService.GetTransactionHistory(ctx.Request.Context(), claims.Id, req)
+	log.Println("res :\n", res, "meta :\n", metaData, "error :", err)
 	if err != nil {
 		response.Error(ctx, 500, "internal server")
 		return
