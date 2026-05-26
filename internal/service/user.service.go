@@ -251,15 +251,29 @@ func (s *UserService) EditPassword(ctx context.Context, id int, req dto.EditPass
 }
 
 func (s *UserService) UploadProfilePicture(ctx context.Context, userID int, fileHeader *multipart.FileHeader) (string, error) {
-	if fileHeader.Size > 2*1024*1024 {
+	/*
+		validasi ukuran
+		buat format file apa saja yang bisa di unggah
+		cek format content
+		hapus source lama
+		buat format penamaan file yang di unggah dan
+		save ke folder yang dibuat
+		buat file path gambar
+	*/
+
+	if fileHeader.Size > 1*1024*1024 {
 		return "", appError.FileTooLarge
 	}
-
 	file, err := fileHeader.Open()
 	if err != nil {
 		return "", err
 	}
-	defer file.Close()
+	defer func(file multipart.File) {
+		err := file.Close()
+		if err != nil {
+			log.Println("close error :", err)
+		}
+	}(file)
 
 	buf := make([]byte, 512)
 	if _, err := file.Read(buf); err != nil {
@@ -271,6 +285,7 @@ func (s *UserService) UploadProfilePicture(ctx context.Context, userID int, file
 	allowedTypes := map[string]string{
 		"image/jpeg": ".jpg",
 		"image/png":  ".png",
+		"image/webp": ".webp",
 	}
 	ext, allowed := allowedTypes[mimeType]
 	if !allowed {
@@ -278,6 +293,7 @@ func (s *UserService) UploadProfilePicture(ctx context.Context, userID int, file
 	}
 
 	oldProfile, err := s.userRepository.GetUserProfile(ctx, userID)
+	log.Println("old file", oldProfile.ProfilePictureURL, "errornya apa ya?", err)
 	if err == nil && oldProfile.ProfilePictureURL != nil && *oldProfile.ProfilePictureURL != "" {
 		oldPath := filepath.Join("public", *oldProfile.ProfilePictureURL)
 		err := os.Remove(oldPath)
@@ -287,7 +303,7 @@ func (s *UserService) UploadProfilePicture(ctx context.Context, userID int, file
 	}
 
 	filename := fmt.Sprintf("user_%d_%d%s", userID, time.Now().UnixNano(), ext)
-	savePath := filepath.Join("public", "img", "profiles", filename)
+	savePath := filepath.Join("public", "img", filename)
 
 	if _, err := file.Seek(0, io.SeekStart); err != nil {
 		return "", err
@@ -297,15 +313,22 @@ func (s *UserService) UploadProfilePicture(ctx context.Context, userID int, file
 	if err != nil {
 		return "", err
 	}
-	defer dst.Close()
-
+	defer func(dst *os.File) {
+		err := dst.Close()
+		if err != nil {
+			log.Println("close error :", err)
+		}
+	}(dst)
 	if _, err := io.Copy(dst, file); err != nil {
 		return "", err
 	}
 
 	publicURL := fmt.Sprintf("/img/profiles/%s", filename)
 	if err := s.userRepository.UpdateProfilePictureURL(ctx, userID, publicURL); err != nil {
-		os.Remove(savePath)
+		err := os.Remove(savePath)
+		if err != nil {
+			return "", err
+		}
 		return "", err
 	}
 
