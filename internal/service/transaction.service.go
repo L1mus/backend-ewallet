@@ -25,11 +25,12 @@ func NewTransactionService(transactionRepo *repository.TransactionRepository, db
 }
 
 func (s *TransactionService) CreateTransfer(ctx context.Context, senderID int, req dto.CreateTransferRequest) error {
-	// VALIDASI
-	// cegah transfer ke diri sendiri
-	// verifikasi PIN
-	// cek receiver ada
-	// cek balance awal
+	/*
+		VALIDASI
+		cegah transfer ke diri sendiri
+		verifikasi PIN
+		cek receiver ada
+		cek balance awal
 
 	//TRANSACTION
 	// mulai Begin
