@@ -16,12 +16,7 @@ type GetTransactionsReportRequest struct {
 	Period string `form:"period" binding:"required,oneof=week month year" example:"month"`
 }
 
-type TransactionHistoryQuery struct {
-	Page   string `form:"page" default:"1" example:"1"`
-	Search string `form:"search" example:"John Doe"`
-}
-
-type ReceiverQuery struct {
+type PageQuery struct {
 	Page   string `form:"page" default:"1" example:"1"`
 	Search string `form:"search" example:"John Doe"`
 }
