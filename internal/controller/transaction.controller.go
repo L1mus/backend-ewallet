@@ -46,7 +46,7 @@ func (c *TransactionController) CreateTransfer(ctx *gin.Context) {
 		return
 	}
 
-	err := c.transactionService.CreateTransfer(ctx.Request.Context(), claims.Id, body)
+	res, err := c.transactionService.CreateTransfer(ctx.Request.Context(), claims.Id, body)
 	if err != nil {
 		if errors.Is(err, appError.SelfTransferNotAllowed) ||
 			errors.Is(err, appError.ReceiverNotFound) ||
@@ -60,5 +60,5 @@ func (c *TransactionController) CreateTransfer(ctx *gin.Context) {
 		return
 	}
 
-	response.Success(ctx, 201, "Transfer successful", nil)
+	response.Success(ctx, 201, "Transfer successful", res)
 }
