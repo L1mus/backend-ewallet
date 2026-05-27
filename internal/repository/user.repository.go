@@ -3,9 +3,9 @@ package repository
 import (
 	"context"
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/L1mus/backend-ewallet/internal/dto"
 	"github.com/L1mus/backend-ewallet/internal/model"
@@ -107,14 +107,14 @@ func (r *UserRepository) GetReceiver(ctx context.Context, id int, req dto.PageQu
 	return data, nil
 }
 
-func (r *UserRepository) GetTransactionReport(ctx context.Context, id int, timePeriod string) ([]model.GetTransactionReport, error) {
+func (r *UserRepository) GetTransactionReport(ctx context.Context, id int, timePeriod string, startDate time.Time) ([]model.GetTransactionReport, error) {
 	sql := `
 			SELECT  DATE_TRUNC($2, created_at)::DATE AS period, COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) AS total_income, COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0) AS total_expense
 			FROM transactions
-			WHERE user_id = $1 AND status = 'success'
+			WHERE user_id = $1 AND status = 'success' AND activity_type = 'transfer' AND created_at >= $3
 			GROUP BY DATE_TRUNC($2, created_at)
 			ORDER BY period ASC;`
-	args := []any{id, timePeriod}
+	args := []any{id, timePeriod, startDate}
 	var data []model.GetTransactionReport
 	rows, err := r.db.Query(ctx, sql, args...)
 	if err != nil {
