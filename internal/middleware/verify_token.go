@@ -58,5 +58,6 @@ func VerifyToken(ctx *gin.Context) {
 
 	// menempelkan (attach) claims ke context request
 	ctx.Set("claims", claims)
+	ctx.Set("raw_token", token)
 	ctx.Next()
 }
