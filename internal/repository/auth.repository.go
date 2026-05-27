@@ -65,10 +65,10 @@ func (r *AuthRepository) CheckEmailExist(ctx context.Context, email string) (boo
 }
 
 func (r *AuthRepository) Login(ctx context.Context, email string) (model.User, error) {
-	sql := `SELECT id,full_name,email, hash_password FROM users WHERE email = $1 AND deleted_at IS NULL`
+	sql := `SELECT id,full_name, hash_password, hash_pin FROM users WHERE email = $1 AND deleted_at IS NULL`
 	args := []any{email}
 	var user model.User
-	if err := r.db.QueryRow(ctx, sql, args...).Scan(&user.Id, &user.FullName, &user.Email, &user.HashPassword); err != nil {
+	if err := r.db.QueryRow(ctx, sql, args...).Scan(&user.Id, &user.FullName, &user.HashPassword, &user.HashPin); err != nil {
 		return model.User{}, err
 	}
 	return user, nil
