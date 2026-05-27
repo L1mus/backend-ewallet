@@ -248,19 +248,25 @@ func (s *UserService) GetTransactionHistory(ctx context.Context, id int, req dto
 		nextLink = fmt.Sprintf("http://localhost:8080/users/transactions?search=%s&page=%d", req.Search, page+1)
 	}
 
-	}
-	if page == totalPage {
-		nextLink = ""
-	} else {
-		nextLink = fmt.Sprintf("http://localhost:8080/users/transfer?search=%s&page=%d", req.Search, page+1)
-	}
-	for _, user := range data {
-		users = append(users, dto.GetTransactionHistoryDTO{
-			TransactionID:     user.TransactionID,
-			Amount:            user.Amount,
-			ProfilePictureUrl: user.ProfilePictureUrl,
-			Phone:             user.Phone,
-		})
+	var transactions []dto.GetTransactionHistoryDTO
+	for _, transaction := range data {
+		item := dto.GetTransactionHistoryDTO{
+			TransactionID: transaction.TransactionID,
+			Amount:        transaction.Amount,
+			Type:          transaction.Type,
+			ActivityType:  transaction.ActivityType,
+			Status:        transaction.Status,
+		}
+		if transaction.ReceiverName != nil {
+			item.ReceiverName = *transaction.ReceiverName
+		}
+		if transaction.Phone != nil {
+			item.Phone = *transaction.Phone
+		}
+		if transaction.ProfilePictureUrl != nil {
+			item.ProfilePictureUrl = *transaction.ProfilePictureUrl
+		}
+		transactions = append(transactions, item)
 	}
 	metaDataPAgination := dto.PaginationMetaData{
 		TotalPages: totalPage,
