@@ -17,4 +17,5 @@ var (
 	InsufficientBalance    = errors.New("insufficient balance")
 	ReceiverNotFound       = errors.New("receiver not found")
 	SelfTransferNotAllowed = errors.New("cannot transfer to your own account")
+	InvalidPeriod          = errors.New("invalid period")
 )
