@@ -219,13 +219,14 @@ func (r *UserRepository) GetTransactionHistory(ctx context.Context, id int, req 
 
 func (r *UserRepository) UpdateProfile(ctx context.Context, id int, req dto.EditProfileRequest) error {
 	sql := `
-        UPDATE users
+		UPDATE users
         SET full_name           = $1,
-            phone               = $2,
-            profile_picture_url = $3,
+            phone               = COALESCE($2, phone),
+            profile_picture_url = COALESCE($3, profile_picture_url),
             updated_at          = NOW()
-        WHERE id = $4`
-	_, err := r.db.Exec(ctx, sql, req.FullName, req.Phone, req.ProfilePictureURL, id)
+        WHERE id = $4 AND deleted_at IS NULL`
+	args := []any{req.FullName, req.Phone, req.ProfilePictureURL, id}
+	_, err := r.db.Exec(ctx, sql, args...)
 	return err
 }
 
@@ -251,10 +252,4 @@ func (r *UserRepository) CheckPhoneTaken(ctx context.Context, id int, phone stri
 		return false, err
 	}
 	return count > 0, nil
-}
-
-func (r *UserRepository) UpdateProfilePictureURL(ctx context.Context, id int, url string) error {
-	sql := `UPDATE users SET profile_picture_url = $1, updated_at = NOW() WHERE id = $2`
-	_, err := r.db.Exec(ctx, sql, url, id)
-	return err
 }
