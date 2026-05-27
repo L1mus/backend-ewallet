@@ -23,7 +23,7 @@ import (
 
 // @license.name  MIT
 
-// @host      localhost:8080
+// @host      localhost:80
 // @BasePath  /
 
 // @securityDefinitions.apiKey  ApiKeyAuth
