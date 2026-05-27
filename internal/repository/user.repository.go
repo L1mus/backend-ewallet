@@ -152,68 +152,55 @@ func (r *UserRepository) GetTransactionHistory(ctx context.Context, id int, req 
 	var args []any
 	argCount := 1
 	sb.WriteString(`
-			SELECT  t.id AS transaction_id, t.amount, t.type, t.activity_type, u_receiver.full_name AS receiver_name,u_receiver.phone AS phone_receiver,u_receiver.profile_picture_url,COUNT(*) OVER() AS total_count
+		WITH trh AS (
+			SELECT t.id AS transaction_id, t.amount, t.type, t.activity_type, t.status, COALESCE(u_other.full_name, '') AS receiver_name, COALESCE(u_other.phone, '') AS phone_receiver, COALESCE(u_other.profile_picture_url, '') AS profile_picture_url, t.created_at
 			FROM transactions t
 			LEFT JOIN transfer_details td ON t.id = td.transaction_id
-			LEFT JOIN users u_receiver ON td.receiver_id = u_receiver.id
-			WHERE t.user_id = $1`)
-	argCount++
+			LEFT JOIN users u_other ON td.receiver_id = u_other.id
+			WHERE t.user_id = $1
+			  AND t.activity_type = 'transfer'
+		)
+		SELECT transaction_id, amount, type, activity_type, status, receiver_name, phone_receiver, profile_picture_url, COUNT(*) OVER() AS total_count
+		FROM trh
+		WHERE 1=1
+	`)
 	args = append(args, id)
+	argCount++
+
 	if req.Search != "" {
-		sb.WriteString(`
-					AND (
-				  u_receiver.full_name ILIKE $2 OR
-				u_receiver.phone ILIKE $2
-			  )`)
-		argCount++
+		fmt.Fprintf(&sb, ` AND (receiver_name ILIKE $%d OR phone_receiver ILIKE $%d)`, argCount, argCount)
 		args = append(args, "%"+req.Search+"%")
+		argCount++
 	}
-	sb.WriteString(` ORDER BY t.created_at DESC `)
+
+	sb.WriteString(` ORDER BY transaction_id DESC`)
+
 	limit := 10
 	page := 1
 	if req.Page != "" {
-		if p, _ := strconv.Atoi(req.Page); p > 0 {
+		if p, err := strconv.Atoi(req.Page); err == nil && p > 0 {
 			page = p
 		}
 	}
 	offset := (page - 1) * limit
-	_, err := fmt.Fprintf(&sb, `LIMIT $%d OFFSET $%d;`, argCount, argCount+1)
-	if err != nil {
-		return nil, err
-	}
+
+	fmt.Fprintf(&sb, ` LIMIT $%d OFFSET $%d`, argCount, argCount+1)
 	args = append(args, limit, offset)
 
-	//sql := `
-	//		SELECT  t.id AS transaction_id, t.amount, t.type, t.activity_type, t.status, t.created_at, td.description AS transfer_description, u_receiver.full_name AS receiver_name, pm.name AS payment_method_name,COUNT(*) OVER() AS total_count
-	//		FROM transactions t
-	//		LEFT JOIN transfer_details td ON t.id = td.transaction_id
-	//		LEFT JOIN users u_receiver ON td.receiver_id = u_receiver.id
-	//		LEFT JOIN topup_details tp ON t.id = tp.transaction_id
-	//		LEFT JOIN payment_method pm ON tp.payment_method_id = pm.id
-	//		WHERE t.user_id = $1
-	//		  AND (
-	//			  u_receiver.full_name ILIKE '%' || $2 || '%' OR
-	//			  pm.name ILIKE '%' || $2 || '%' OR
-	//			  td.description ILIKE '%' || $2 || '%'
-	//		  )
-	//		ORDER BY t.created_at DESC
-	//		LIMIT $3 OFFSET $4;`
-	sql := sb.String()
-	println(sql)
-	var transactions []model.GetTransactionHistory
-	rows, err := r.db.Query(ctx, sql, args...)
+	rows, err := r.db.Query(ctx, sb.String(), args...)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
+
+	var transactions []model.GetTransactionHistory
 	for rows.Next() {
 		var transaction model.GetTransactionHistory
-		if err := rows.Scan(&transaction.TransactionID, &transaction.Amount, &transaction.Type, &transaction.ActivityType, &transaction.ReceiverName, &transaction.Phone, &transaction.ProfilePictureUrl, &transaction.TotalCount); err != nil {
+		if err := rows.Scan(&transaction.TransactionID, &transaction.Amount, &transaction.Type, &transaction.ActivityType, &transaction.Status, &transaction.ReceiverName, &transaction.Phone, &transaction.ProfilePictureUrl, &transaction.TotalCount); err != nil {
 			return nil, err
 		}
 		transactions = append(transactions, transaction)
 	}
-	log.Println(transactions)
 	return transactions, nil
 }
 
