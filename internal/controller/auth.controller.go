@@ -3,23 +3,30 @@ package controller
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"strings"
+	"time"
 
 	"github.com/L1mus/backend-ewallet/internal/appError"
+	"github.com/L1mus/backend-ewallet/internal/cache"
 	"github.com/L1mus/backend-ewallet/internal/dto"
 	"github.com/L1mus/backend-ewallet/internal/response"
 	"github.com/L1mus/backend-ewallet/internal/service"
+	"github.com/L1mus/backend-ewallet/pkg"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
+	"github.com/redis/go-redis/v9"
 )
 
 type AuthController struct {
 	authService *service.AuthService
+	rdb         *redis.Client
 }
 
-func NewAuthController(authService *service.AuthService) *AuthController {
+func NewAuthController(authService *service.AuthService, rdb *redis.Client) *AuthController {
 	return &AuthController{
 		authService: authService,
+		rdb:         rdb,
 	}
 }
 
@@ -111,4 +118,46 @@ func (c *AuthController) Login(ctx *gin.Context) {
 		return
 	}
 	response.Success(ctx, 200, fmt.Sprintf("Login Complete, Welcome %s", res.FullName), res)
+}
+
+// Logout
+//
+// @Summary      Logout account
+// @Description  Blacklist current active session token
+// @Tags         Auth
+// @Security     BearerAuth
+// @Produce      json
+// @Success      200  {object}  dto.ResponseSuccess
+// @Failure      401  {object}  dto.ResponseError
+// @Failure      500  {object}  dto.ResponseError
+// @Router       /auth/logout [post]
+func (c *AuthController) Logout(ctx *gin.Context) {
+	/*
+		Ambil claims
+		lihat kapan token kadaluarsa
+		ambil token mentah
+		Ambil waktu expired
+		untuk melihat Sisa waktu hidup token dijadikan durasi TTL di Redis
+		insert token ke redis
+
+	*/
+	token, _ := ctx.Get("claims")
+	claims := token.(pkg.Claims)
+
+	tokenStr, _ := ctx.Get("raw_token")
+	if claims.ExpiresAt == nil {
+		response.Error(ctx, http.StatusBadRequest, "token does not have expiration claim")
+		return
+	}
+	expirationTime := claims.ExpiresAt.Time
+
+	ttl := time.Until(expirationTime)
+	if ttl > 0 {
+		err := cache.SaveToBlacklist(ctx.Request.Context(), c.rdb, tokenStr.(string), ttl)
+		if err != nil {
+			response.Error(ctx, http.StatusInternalServerError, "failed to invalidate session")
+			return
+		}
+	}
+	response.Success(ctx, http.StatusOK, "Logout complete, session destroyed!", nil)
 }
