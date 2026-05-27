@@ -3,7 +3,6 @@ package controller
 import (
 	"errors"
 	"fmt"
-	"net/http"
 	"strings"
 	"time"
 
@@ -39,7 +38,8 @@ func NewAuthController(authService *service.AuthService, rdb *redis.Client) *Aut
 // @Produce      json
 // @Param		 body	body	dto.RegisterRequest true "Register Payload"
 // @Success      201  {object}  dto.RegisterResponse
-// @Failure      400  {object}  dto.ResponseError
+// @Failure      400  {object}  dto.ResponseError "required field || invalid format || email already exist"
+// @Failure      409  {object}  dto.ResponseError
 // @Failure      500  {object}  dto.ResponseError
 // @Router       /auth/register [post]
 func (c *AuthController) Register(ctx *gin.Context) {
@@ -98,7 +98,7 @@ func (c *AuthController) Register(ctx *gin.Context) {
 // @Produce      json
 // @Param		 body	body	dto.LoginRequest true "Login Payload"
 // @Success      200  {object}  dto.LoginResponse
-// @Failure      400  {object}  dto.ResponseError
+// @Failure      400  {object}  dto.ResponseError "Email or pass wrong || binding error"
 // @Failure      500  {object}  dto.ResponseError
 // @Router       /auth [post]
 func (c *AuthController) Login(ctx *gin.Context) {
@@ -128,7 +128,7 @@ func (c *AuthController) Login(ctx *gin.Context) {
 // @Security     BearerAuth
 // @Produce      json
 // @Success      200  {object}  dto.ResponseSuccess
-// @Failure      401  {object}  dto.ResponseError
+// @Failure      422  {object}  dto.ResponseError
 // @Failure      500  {object}  dto.ResponseError
 // @Router       /auth/logout [post]
 func (c *AuthController) Logout(ctx *gin.Context) {
@@ -146,7 +146,7 @@ func (c *AuthController) Logout(ctx *gin.Context) {
 
 	tokenStr, _ := ctx.Get("raw_token")
 	if claims.ExpiresAt == nil {
-		response.Error(ctx, http.StatusBadRequest, "token does not have expiration claim")
+		response.Error(ctx, 422, "token does not have expiration claim")
 		return
 	}
 	expirationTime := claims.ExpiresAt.Time
@@ -155,9 +155,9 @@ func (c *AuthController) Logout(ctx *gin.Context) {
 	if ttl > 0 {
 		err := cache.SaveToBlacklist(ctx.Request.Context(), c.rdb, tokenStr.(string), ttl)
 		if err != nil {
-			response.Error(ctx, http.StatusInternalServerError, "failed to invalidate session")
+			response.Error(ctx, 500, "failed to invalidate session")
 			return
 		}
 	}
-	response.Success(ctx, http.StatusOK, "Logout complete, session destroyed!", nil)
+	response.Success(ctx, 200, "Logout complete, session end", nil)
 }
