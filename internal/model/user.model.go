@@ -68,8 +68,11 @@ type GetTransactionHistory struct {
 	Amount            float32 `db:"amount"`
 	Type              string  `db:"type" binding:"income expense"`
 	ActivityType      string  `db:"activity_type" binding:"transfer topup"`
+	Type              string  `db:"type"`
+	ActivityType      string  `db:"activity_type"`
+	Status            string  `db:"status"`
 	ReceiverName      *string `db:"receiver_name"`
 	Phone             *string `db:"phone_receiver"`
-	ProfilePictureUrl *string `json:"profile_picture_url"`
+	ProfilePictureUrl *string `db:"profile_picture_url"`
 	TotalCount        int     `db:"total_count"`
 }
