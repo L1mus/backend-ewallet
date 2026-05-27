@@ -3,6 +3,7 @@ package controller
 import (
 	"errors"
 	"log"
+	"net/http"
 
 	"github.com/L1mus/backend-ewallet/internal/appError"
 	"github.com/L1mus/backend-ewallet/internal/dto"
@@ -288,43 +289,4 @@ func (c *UserController) EditPassword(ctx *gin.Context) {
 	}
 
 	response.Success(ctx, 200, "Password updated successfully", nil)
-}
-
-// UploadProfilePicture
-//
-// @Summary      Upload profile picture
-// @Description  Upload and update the authenticated user's profile picture. Accepted formats: JPG and PNG. Maximum file size: 2MB
-// @Tags         users
-// @Accept       multipart/form-data
-// @Produce      json
-// @Security     ApiKeyAuth
-// @Param        picture  formData  file    true  "Profile picture file (jpg, png, max 2MB)"
-// @Success      200      {object}  dto.ResponseSuccess{data=object{url=string}}
-// @Failure      400      {object}  dto.ResponseError
-// @Failure      422      {object}  dto.ResponseError
-// @Failure      500      {object}  dto.ResponseError
-// @Router       /users/avatar [patch]
-func (c *UserController) UploadProfilePicture(ctx *gin.Context) {
-	token, _ := ctx.Get("claims")
-	claims := token.(pkg.Claims)
-
-	fileHeader, err := ctx.FormFile("picture")
-	if err != nil {
-		response.Error(ctx, 400, "picture file is required")
-		return
-	}
-
-	url, err := c.userService.UploadProfilePicture(ctx.Request.Context(), claims.Id, fileHeader)
-	if err != nil {
-		if errors.Is(err, appError.FileTooLarge) || errors.Is(err, appError.FileTypeNotAllowed) {
-			response.Error(ctx, 422, err.Error())
-			return
-		}
-		response.Error(ctx, 500, "internal server error")
-		return
-	}
-
-	response.Success(ctx, 200, "Profile picture updated", gin.H{
-		"url": url,
-	})
 }
