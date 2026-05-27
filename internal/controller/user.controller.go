@@ -27,19 +27,25 @@ func NewUserController(userService *service.UserService) *UserController {
 // GetUserProfile
 //
 // @Summary      Get user Profile
-// @Description  Get user Profile
+// @Description  Get authenticated user's profile details
 // @Tags         users
 // @Accept       json
 // @Produce      json
 // @Security	 APIKeyAuth
-// @Success      200  {object}  dto.GetUserProfileResponse
-// @Failure      500  {object}  dto.ResponseError
+// @Success      200  {object}  dto.ResponseSuccess{data=dto.GetUserProfileDTO}
+// @Failure      401  {object}  dto.ResponseError "Unauthorized"
+// @Failure      404  {object}  dto.ResponseError "User Not Found"
+// @Failure      500  {object}  dto.ResponseError "Internal Server Error"
 // @Router       /users/profile [get]
 func (c *UserController) GetUserProfile(ctx *gin.Context) {
 	token, _ := ctx.Get("claims")
 	claims := token.(pkg.Claims)
 	res, err := c.userService.GetUserProfile(ctx.Request.Context(), claims.Id)
 	if err != nil {
+		if errors.Is(err, appError.UserNotFound) {
+			response.Error(ctx, 404, err.Error())
+			return
+		}
 		response.Error(ctx, 500, err.Error())
 		return
 	}
@@ -53,9 +59,10 @@ func (c *UserController) GetUserProfile(ctx *gin.Context) {
 // @Tags         users
 // @Accept       json
 // @Produce      json
-// @Security     ApiKeyAuth
+// @Security     APIKeyAuth
 // @Success      200  {object}  dto.ResponseSuccess{data=dto.GetUserDashboardDTO}
-// @Failure      500  {object}  dto.ResponseError
+// @Failure      401  {object}  dto.ResponseError "Unauthorized"
+// @Failure      500  {object}  dto.ResponseError "Internal Server Error"
 // @Router       /users/dashboard [get]
 func (c *UserController) GetUserDashboard(ctx *gin.Context) {
 	token, _ := ctx.Get("claims")
@@ -63,6 +70,7 @@ func (c *UserController) GetUserDashboard(ctx *gin.Context) {
 	res, err := c.userService.GetUserDashboard(ctx.Request.Context(), claims.Id)
 	if err != nil {
 		response.Error(ctx, 500, "internal server error")
+		return
 	}
 	response.Success(ctx, 200, "Get data success", res)
 }
@@ -74,12 +82,13 @@ func (c *UserController) GetUserDashboard(ctx *gin.Context) {
 // @Tags         users
 // @Accept       json
 // @Produce      json
-// @Security     ApiKeyAuth
+// @Security     APIKeyAuth
 // @Param        search  query     string  false  "Search by name or phone number"  example("John Doe")
 // @Param        page    query     string  false  "Page number"                      example("1")
-// @Success      200     {object}  dto.FindReceiverResponse
-// @Failure      400     {object}  dto.ResponseError
-// @Failure      500     {object}  dto.ResponseError
+// @Success      200     {object}  dto.ResponseSuccess{data=[]dto.FindReceiverDTO,meta=dto.PaginationMetaData}
+// @Failure      400     {object}  dto.ResponseError "Bad Request"
+// @Failure      401     {object}  dto.ResponseError "Unauthorized"
+// @Failure      500     {object}  dto.ResponseError "Internal Server Error"
 // @Router       /users/transfer [get]
 func (c *UserController) FindReceiver(ctx *gin.Context) {
 	// bentuk url users?search=&page
@@ -87,6 +96,7 @@ func (c *UserController) FindReceiver(ctx *gin.Context) {
 	var req dto.PageQuery
 	if err := ctx.ShouldBindQuery(&req); err != nil {
 		response.Error(ctx, 400, "bad request")
+		return
 	}
 	// default page jika request page tidak string kosong
 	// get all data, get total pages
@@ -119,11 +129,12 @@ func (c *UserController) FindReceiver(ctx *gin.Context) {
 // @Tags         users
 // @Accept       json
 // @Produce      json
-// @Security     ApiKeyAuth
+// @Security     APIKeyAuth
 // @Param        period  query     string  true  "Time period to group by"  Enums(week, month, year)  example("month")
-// @Success      200     {object}  dto.GetTransactionReportResponse
-// @Failure      400     {object}  dto.ResponseError
-// @Failure      500     {object}  dto.ResponseError
+// @Success      200     {object}  dto.ResponseSuccess{data=dto.GetTransactionReportResponse}
+// @Failure      400     {object}  dto.ResponseError "Bad Request / Invalid Period"
+// @Failure      401     {object}  dto.ResponseError "Unauthorized"
+// @Failure      500     {object}  dto.ResponseError "Internal Server Error"
 // @Router       /users/report [get]
 func (c *UserController) GetTransactionReport(ctx *gin.Context) {
 	token, _ := ctx.Get("claims")
@@ -135,6 +146,10 @@ func (c *UserController) GetTransactionReport(ctx *gin.Context) {
 	}
 	res, err := c.userService.GetTransactionReport(ctx.Request.Context(), claims.Id, body.Period)
 	if err != nil {
+		if errors.Is(err, appError.InvalidPeriod) {
+			response.Error(ctx, 400, err.Error())
+			return
+		}
 		response.Error(ctx, 500, "internal server error")
 		return
 	}
@@ -148,18 +163,20 @@ func (c *UserController) GetTransactionReport(ctx *gin.Context) {
 // @Tags         users
 // @Accept       json
 // @Produce      json
-// @Security     ApiKeyAuth
+// @Security     APIKeyAuth
 // @Param        search  query     string  false  "Search by receiver name, payment method, or description"  example("John Doe")
 // @Param        page    query     string  false  "Page number"                                               example("1")
-// @Success      200     {object}  dto.ResponseSuccess{data=[]dto.GetTransactionHistoryDTO}
-// @Failure      400     {object}  dto.ResponseError
-// @Failure      500     {object}  dto.ResponseError
+// @Success      200     {object}  dto.ResponseSuccess{data=[]dto.GetTransactionHistoryDTO,meta=dto.PaginationMetaData}
+// @Failure      400     {object}  dto.ResponseError "Bad Request"
+// @Failure      401     {object}  dto.ResponseError "Unauthorized"
+// @Failure      500     {object}  dto.ResponseError "Internal Server Error"
 // @Router       /users/transactions [get]
 func (c *UserController) GetTransactionHistory(ctx *gin.Context) {
 
 	var req dto.PageQuery
 	if err := ctx.ShouldBindQuery(&req); err != nil {
 		response.Error(ctx, 400, "bad request")
+		return
 	}
 
 	token, _ := ctx.Get("claims")
@@ -182,14 +199,16 @@ func (c *UserController) GetTransactionHistory(ctx *gin.Context) {
 // @Tags         users
 // @Accept       multipart/form-data
 // @Produce      json
-// @Security     ApiKeyAuth
+// @Security     APIKeyAuth
 // @Param        full_name  formData  string  false  "Full Name"
 // @Param        phone      formData  string  false  "Phone Number"
 // @Param        picture    formData  file    false  "Avatar profile image (jpg, png, max 2MB)"
 // @Success      200        {object}  dto.ResponseSuccess
-// @Failure      400        {object}  dto.ResponseError
-// @Failure      422        {object}  dto.ResponseError
-// @Failure      500        {object}  dto.ResponseError
+// @Failure      400        {object}  dto.ResponseError "Bad Request / Invalid Format"
+// @Failure      401        {object}  dto.ResponseError "Unauthorized"
+// @Failure      409        {object}  dto.ResponseError "Phone Number Already Exists"
+// @Failure      422        {object}  dto.ResponseError "File to large || File type not allowed"
+// @Failure      500        {object}  dto.ResponseError "Internal Server Error"
 // @Router       /users/profile [put]
 func (c *UserController) UpdateProfile(ctx *gin.Context) {
 	token, _ := ctx.Get("claims")
@@ -210,7 +229,11 @@ func (c *UserController) UpdateProfile(ctx *gin.Context) {
 	err = c.userService.EditProfile(ctx.Request.Context(), claims.Id, req, fileHeader)
 	if err != nil {
 		if errors.Is(err, appError.PhoneAlreadyExists) {
-			response.Error(ctx, 400, err.Error())
+			response.Error(ctx, 409, err.Error())
+			return
+		}
+		if errors.Is(err, appError.FileTooLarge) || errors.Is(err, appError.FileTypeNotAllowed) {
+			response.Error(ctx, 422, err.Error())
 			return
 		}
 		response.Error(ctx, http.StatusInternalServerError, err.Error())
@@ -226,11 +249,12 @@ func (c *UserController) UpdateProfile(ctx *gin.Context) {
 // @Tags         users
 // @Accept       json
 // @Produce      json
-// @Security     ApiKeyAuth
+// @Security     APIKeyAuth
 // @Param        body  body      dto.EditPinRequest  true  "Edit PIN Payload"
 // @Success      200   {object}  dto.ResponseSuccess
-// @Failure      400   {object}  dto.ResponseError
-// @Failure      500   {object}  dto.ResponseError
+// @Failure      400   {object}  dto.ResponseError "Wrong PIN or Empty PIN"
+// @Failure      401   {object}  dto.ResponseError "Unauthorized"
+// @Failure      500   {object}  dto.ResponseError "Internal Server Error"
 // @Router       /users/pin [patch]
 func (c *UserController) EditPin(ctx *gin.Context) {
 	token, _ := ctx.Get("claims")
@@ -262,11 +286,12 @@ func (c *UserController) EditPin(ctx *gin.Context) {
 // @Tags         users
 // @Accept       json
 // @Produce      json
-// @Security     ApiKeyAuth
+// @Security     APIKeyAuth
 // @Param        body  body      dto.EditPasswordRequest  true  "Edit Password Payload"
 // @Success      200   {object}  dto.ResponseSuccess
-// @Failure      400   {object}  dto.ResponseError
-// @Failure      500   {object}  dto.ResponseError
+// @Failure      400   {object}  dto.ResponseError "Wrong Password"
+// @Failure      401   {object}  dto.ResponseError "Unauthorized"
+// @Failure      500   {object}  dto.ResponseError "Internal Server Error"
 // @Router       /users/password [patch]
 func (c *UserController) EditPassword(ctx *gin.Context) {
 	token, _ := ctx.Get("claims")
