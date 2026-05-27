@@ -425,5 +425,8 @@ func (s *UserService) EditPassword(ctx context.Context, id int, req dto.EditPass
 		return appError.WrongPassword
 	}
 
-	return publicURL, nil
+	hc.UseRecommended()
+	hashNewPassword := hc.GenHash(req.NewPassword)
+
+	return s.userRepository.UpdatePassword(ctx, id, hashNewPassword)
 }
