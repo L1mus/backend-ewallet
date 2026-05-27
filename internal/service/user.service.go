@@ -274,42 +274,7 @@ func (s *UserService) GetTransactionHistory(ctx context.Context, id int, req dto
 		NextLink:   nextLink,
 		PrevLink:   prevLink,
 	}
-	return users, metaDataPAgination, nil
-}
-
-func (s *UserService) EditProfile(ctx context.Context, id int, req dto.EditProfileRequest) error {
-	if req.Phone != nil && *req.Phone != "" {
-		taken, err := s.userRepository.CheckPhoneTaken(ctx, id, *req.Phone)
-		if err != nil {
-			return err
-		}
-		if taken {
-			return appError.PhoneAlreadyExists
-		}
-	}
-
-	return s.userRepository.UpdateProfile(ctx, id, req)
-}
-
-func (s *UserService) EditPin(ctx context.Context, id int, req dto.EditPinRequest) error {
-	data, err := s.userRepository.GetPin(ctx, id)
-	if err != nil {
-		return err
-	}
-
-	if data.HashPin == nil {
-		return appError.EmptyPin
-	}
-
-	var hc pkg.HashConfig
-	if err := hc.Compare(req.CurrentPin, *data.HashPin); err != nil {
-		return appError.WrongPin
-	}
-
-	hc.UseRecommended()
-	hashNewPin := hc.GenHash(req.NewPin)
-
-	return s.userRepository.UpdatePin(ctx, id, hashNewPin)
+	return transactions, metaDataPAgination, nil
 }
 
 func (s *UserService) EditProfile(ctx context.Context, id int, req dto.EditProfileRequest, fileHeader *multipart.FileHeader) error {
