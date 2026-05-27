@@ -24,7 +24,7 @@ func NewTransactionService(transactionRepo *repository.TransactionRepository, db
 	}
 }
 
-func (s *TransactionService) CreateTransfer(ctx context.Context, senderID int, req dto.CreateTransferRequest) error {
+func (s *TransactionService) CreateTransfer(ctx context.Context, senderID int, req dto.CreateTransferRequest) (dto.NewBalanceDTO, error) {
 	/*
 		VALIDASI
 		cegah transfer ke diri sendiri
@@ -43,40 +43,40 @@ func (s *TransactionService) CreateTransfer(ctx context.Context, senderID int, r
 	*/
 
 	if senderID == req.ReceiverID {
-		return appError.SelfTransferNotAllowed
+		return dto.NewBalanceDTO{}, appError.SelfTransferNotAllowed
 	}
 
 	hashPin, err := s.transactionRepo.GetUserPin(ctx, s.db, senderID)
 	if err != nil {
-		return err
+		return dto.NewBalanceDTO{}, err
 	}
 	if hashPin == nil {
-		return appError.EmptyPin
+		return dto.NewBalanceDTO{}, appError.EmptyPin
 	}
 	var hc pkg.HashConfig
 	if err := hc.Compare(req.Pin, *hashPin); err != nil {
-		return appError.WrongPin
+		return dto.NewBalanceDTO{}, appError.WrongPin
 	}
 
 	exists, err := s.transactionRepo.CheckReceiverExists(ctx, s.db, req.ReceiverID)
 	if err != nil {
-		return err
+		return dto.NewBalanceDTO{}, err
 	}
 	if !exists {
-		return appError.ReceiverNotFound
+		return dto.NewBalanceDTO{}, appError.ReceiverNotFound
 	}
 
 	balance, err := s.transactionRepo.GetWalletBalance(ctx, s.db, senderID)
 	if err != nil {
-		return err
+		return dto.NewBalanceDTO{}, err
 	}
 	if balance < req.Amount {
-		return appError.InsufficientBalance
+		return dto.NewBalanceDTO{}, appError.InsufficientBalance
 	}
 
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
-		return err
+		return dto.NewBalanceDTO{}, err
 	}
 
 	defer func(tx pgx.Tx, ctx context.Context) {
@@ -88,29 +88,40 @@ func (s *TransactionService) CreateTransfer(ctx context.Context, senderID int, r
 
 	senderTxID, err := s.transactionRepo.InsertTransaction(ctx, tx, senderID, req.Amount, "expense", "transfer")
 	if err != nil {
-		return err
+		return dto.NewBalanceDTO{}, err
 	}
 
 	receiverTxID, err := s.transactionRepo.InsertTransaction(ctx, tx, req.ReceiverID, req.Amount, "income", "transfer")
 	if err != nil {
-		return err
+		return dto.NewBalanceDTO{}, err
 	}
 
 	if err := s.transactionRepo.InsertTransferDetail(ctx, tx, senderTxID, req.ReceiverID, req.Description); err != nil {
-		return err
+		return dto.NewBalanceDTO{}, err
 	}
 
 	if err := s.transactionRepo.InsertTransferDetail(ctx, tx, receiverTxID, senderID, req.Description); err != nil {
-		return err
+		return dto.NewBalanceDTO{}, err
 	}
 
 	if err := s.transactionRepo.ReduceWalletSender(ctx, tx, senderID, req.Amount); err != nil {
-		return err
+		return dto.NewBalanceDTO{}, err
 	}
 
 	if err := s.transactionRepo.AddWalletReceiver(ctx, tx, req.ReceiverID, req.Amount); err != nil {
-		return err
+		return dto.NewBalanceDTO{}, err
+	}
+	err = tx.Commit(ctx)
+	if err != nil {
+		return dto.NewBalanceDTO{}, err
 	}
 
-	return tx.Commit(ctx)
+	newBalance, err := s.transactionRepo.GetWalletBalance(ctx, s.db, senderID)
+	if err != nil {
+		return dto.NewBalanceDTO{}, err
+	}
+
+	return dto.NewBalanceDTO{
+		Balance: newBalance,
+	}, nil
 }
