@@ -34,9 +34,9 @@ type EditPasswordRequest struct {
 }
 
 type EditProfileRequest struct {
-	FullName          string  `json:"full_name"           binding:"required,min=3"`
-	Phone             *string `json:"phone"`
-	ProfilePictureURL *string `json:"profile_picture_url"`
+	FullName          string  `json:"full_name"           form:"full_name"`
+	Phone             *string `json:"phone"               form:"phone"`
+	ProfilePictureURL *string `json:"profile_picture_url" form:"profile_picture_url"`
 }
 
 type CreateTransferRequest struct {
