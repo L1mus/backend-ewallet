@@ -66,8 +66,6 @@ type GetTransactionReport struct {
 type GetTransactionHistory struct {
 	TransactionID     int     `db:"transaction_id"`
 	Amount            float32 `db:"amount"`
-	Type              string  `db:"type" binding:"income expense"`
-	ActivityType      string  `db:"activity_type" binding:"transfer topup"`
 	Type              string  `db:"type"`
 	ActivityType      string  `db:"activity_type"`
 	Status            string  `db:"status"`
