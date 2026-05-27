@@ -137,20 +137,74 @@ func (s *UserService) FindReceiver(ctx context.Context, id int, req dto.PageQuer
 	return users, metaDataPAgination, nil
 }
 
-func (s *UserService) GetTransactionReport(ctx context.Context, id int, period string) ([]dto.GetTransactionReportDTO, error) {
-	data, err := s.userRepository.GetTransactionReport(ctx, id, period)
-	if err != nil {
-		return nil, err
+func (s *UserService) GetTransactionReport(ctx context.Context, id int, period string) (dto.GetTransactionReportResponse, error) {
+	type periodConfig struct {
+		timePeriode string
+		startDate   time.Time
+		labelFormat string
 	}
-	var transactions []dto.GetTransactionReportDTO
-	for _, transaction := range data {
-		transactions = append(transactions, dto.GetTransactionReportDTO{
-			Period:       transaction.Period,
-			TotalIncome:  transaction.TotalIncome,
-			TotalExpense: transaction.TotalExpense,
+
+	now := time.Now()
+	configs := map[string]periodConfig{
+		"week": {
+			timePeriode: "day",
+			startDate:   now.AddDate(0, 0, -6),
+			labelFormat: "Mon",
+		},
+		"month": {
+			timePeriode: "day",
+			startDate:   time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location()),
+			labelFormat: "2",
+		},
+		"year": {
+			timePeriode: "month",
+			startDate:   time.Date(now.Year(), 1, 1, 0, 0, 0, 0, now.Location()),
+			labelFormat: "Jan",
+		},
+	}
+
+	cfg, ok := configs[period]
+	if !ok {
+		return dto.GetTransactionReportResponse{}, appError.InvalidPeriod
+	}
+
+	data, err := s.userRepository.GetTransactionReport(ctx, id, cfg.timePeriode, cfg.startDate)
+	if err != nil {
+		return dto.GetTransactionReportResponse{}, err
+	}
+
+	var totalIncome float32
+	var totalExpense float32
+	var chartData []dto.GetTransactionReportDTO
+
+	for _, t := range data {
+		label := ""
+		if t.Period != nil {
+			label = t.Period.Format(cfg.labelFormat)
+		}
+		totalIncome += t.TotalIncome
+		totalExpense += t.TotalExpense
+
+		chartData = append(chartData, dto.GetTransactionReportDTO{
+			Period:       label,
+			TotalIncome:  t.TotalIncome,
+			TotalExpense: t.TotalExpense,
 		})
 	}
-	return transactions, nil
+
+	if chartData == nil {
+		chartData = []dto.GetTransactionReportDTO{}
+	}
+
+	return dto.GetTransactionReportResponse{
+		Period: period,
+		Summary: dto.ReportSummaryDTO{
+			TotalIncome:  totalIncome,
+			TotalExpense: totalExpense,
+			NetAmount:    totalIncome - totalExpense,
+		},
+		Data: chartData,
+	}, nil
 }
 
 func (s *UserService) CheckPin(ctx context.Context, id int) error {
