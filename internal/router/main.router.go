@@ -21,7 +21,7 @@ func InitRouter(router *gin.Engine, db *pgxpool.Pool, rdb *redis.Client) {
 	router.Static("/img", "public/img")
 	AuthRouter(router, db, rdb)
 	UserRouter(router, db, rdb)
-	TransactionRouter(router, db)
+	TransactionRouter(router, db, rdb)
 
 	//fallback
 	router.NoRoute(func(ctx *gin.Context) {
