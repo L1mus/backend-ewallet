@@ -76,31 +76,24 @@ func (s *UserService) FindReceiver(ctx context.Context, id int, req dto.PageQuer
 	totalData := data[0].TotalCount
 	limit := 10
 	totalPage := int(math.Ceil(float64(totalData) / float64(limit)))
-	var page int
+	page := 1
 
-	if req.Page == "" {
-		page = 1
-	} else {
-		page, err = strconv.Atoi(req.Page)
-		if err != nil {
-			return nil, dto.PaginationMetaData{}, err
+	if req.Page != "" {
+		if p, err := strconv.Atoi(req.Page); err == nil && p > 0 {
+			page = p
 		}
 	}
 
-	var users []dto.FindReceiverDTO
-	var prevLink string
-	var nextLink string
-	if page == 1 {
-		prevLink = ""
-	} else {
-		prevLink = fmt.Sprintf("http://localhost:8080/users/transfer?search=%s&page=%d", req.Search, page-1)
+	prevLink := ""
+	nextLink := ""
+	if page > 1 {
+		prevLink = fmt.Sprintf("http://localhost:8080/users/transactions?search=%s&page=%d", req.Search, page-1)
+	}
+	if page < totalPage {
+		nextLink = fmt.Sprintf("http://localhost:8080/users/transactions?search=%s&page=%d", req.Search, page+1)
+	}
 
-	}
-	if page == totalPage {
-		nextLink = ""
-	} else {
-		nextLink = fmt.Sprintf("http://localhost:8080/users/transfer?search=%s&page=%d", req.Search, page+1)
-	}
+	var users []dto.FindReceiverDTO
 	for _, user := range data {
 		users = append(users, dto.FindReceiverDTO{
 			Id:                user.Id,
@@ -159,24 +152,22 @@ func (s *UserService) GetTransactionHistory(ctx context.Context, id int, req dto
 	totalData := data[0].TotalCount
 	limit := 10
 	totalPage := int(math.Ceil(float64(totalData) / float64(limit)))
-	var page int
+	page := 1
 
-	if req.Page == "" {
-		page = 1
-	} else {
-		page, err = strconv.Atoi(req.Page)
-		if err != nil {
-			return nil, dto.PaginationMetaData{}, err
+	if req.Page != "" {
+		if p, err := strconv.Atoi(req.Page); err == nil && p > 0 {
+			page = p
 		}
 	}
 
-	var users []dto.GetTransactionHistoryDTO
-	var prevLink string
-	var nextLink string
-	if page == 1 {
-		prevLink = ""
-	} else {
-		prevLink = fmt.Sprintf("http://localhost:8080/users/transfer?search=%s&page=%d", req.Search, page-1)
+	prevLink := ""
+	nextLink := ""
+	if page > 1 {
+		prevLink = fmt.Sprintf("http://localhost:8080/users/transactions?search=%s&page=%d", req.Search, page-1)
+	}
+	if page < totalPage {
+		nextLink = fmt.Sprintf("http://localhost:8080/users/transactions?search=%s&page=%d", req.Search, page+1)
+	}
 
 	}
 	if page == totalPage {
