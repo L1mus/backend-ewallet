@@ -227,6 +227,108 @@ func (s *UserService) EditPin(ctx context.Context, id int, req dto.EditPinReques
 	return s.userRepository.UpdatePin(ctx, id, hashNewPin)
 }
 
+func (s *UserService) EditProfile(ctx context.Context, id int, req dto.EditProfileRequest, fileHeader *multipart.FileHeader) error {
+	newProfileURL := req.ProfilePictureURL
+	if fileHeader != nil {
+		/*
+			validasi ukuran
+			buat format file apa saja yang bisa di unggah
+			cek format content
+			hapus source lama
+			buat format penamaan file yang di unggah dan
+			save ke folder yang dibuat
+			buat file path gambar
+		*/
+		if fileHeader.Size > 2*1024*1024 {
+			return appError.FileTooLarge
+		}
+
+		file, err := fileHeader.Open()
+		if err != nil {
+			return err
+		}
+		defer func(file multipart.File) {
+			_ = file.Close()
+		}(file)
+
+		buf := make([]byte, 512)
+		if _, err := file.Read(buf); err != nil {
+			return err
+		}
+		mimeType := http.DetectContentType(buf)
+
+		allowedTypes := map[string]string{
+			"image/jpeg": ".jpg",
+			"image/png":  ".png",
+			"image/webp": ".webp",
+		}
+		ext, allowed := allowedTypes[mimeType]
+		if !allowed {
+			return appError.FileTypeNotAllowed
+		}
+
+		oldProfile, err := s.userRepository.GetUserProfile(ctx, id)
+		if err == nil && oldProfile.ProfilePictureURL != nil && *oldProfile.ProfilePictureURL != "" {
+			oldPath := filepath.Join("public", *oldProfile.ProfilePictureURL)
+			_ = os.Remove(oldPath)
+		}
+
+		filename := fmt.Sprintf("user_%d_%d%s", id, time.Now().UnixNano(), ext)
+		savePath := filepath.Join("public", "img", filename)
+
+		if _, err := file.Seek(0, io.SeekStart); err != nil {
+			return err
+		}
+
+		dst, err := os.Create(savePath)
+		if err != nil {
+			return err
+		}
+		defer func(dst *os.File) {
+			_ = dst.Close()
+		}(dst)
+
+		if _, err := io.Copy(dst, file); err != nil {
+			return err
+		}
+
+		newProfileURL = new(fmt.Sprintf("/img/%s", filename))
+	}
+
+	req.ProfilePictureURL = newProfileURL
+
+	err := s.userRepository.UpdateProfile(ctx, id, req)
+	if err != nil {
+		return err
+	}
+
+	cacheKey := fmt.Sprintf("user:profile:%d", id)
+	_ = cache.DelFromCache(ctx, s.rdb, cacheKey)
+
+	return nil
+}
+
+func (s *UserService) EditPin(ctx context.Context, id int, req dto.EditPinRequest) error {
+	data, err := s.userRepository.GetPin(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	if data.HashPin == nil {
+		return appError.EmptyPin
+	}
+
+	var hc pkg.HashConfig
+	if err := hc.Compare(req.CurrentPin, *data.HashPin); err != nil {
+		return appError.WrongPin
+	}
+
+	hc.UseRecommended()
+	hashNewPin := hc.GenHash(req.NewPin)
+
+	return s.userRepository.UpdatePin(ctx, id, hashNewPin)
+}
+
 func (s *UserService) EditPassword(ctx context.Context, id int, req dto.EditPasswordRequest) error {
 	data, err := s.userRepository.GetHashPassword(ctx, id)
 	if err != nil {
@@ -236,94 +338,6 @@ func (s *UserService) EditPassword(ctx context.Context, id int, req dto.EditPass
 	var hc pkg.HashConfig
 	if err := hc.Compare(req.CurrentPassword, data.HashPassword); err != nil {
 		return appError.WrongPassword
-	}
-
-	hc.UseRecommended()
-	hashNewPassword := hc.GenHash(req.NewPassword)
-
-	return s.userRepository.UpdatePassword(ctx, id, hashNewPassword)
-}
-
-func (s *UserService) UploadProfilePicture(ctx context.Context, userID int, fileHeader *multipart.FileHeader) (string, error) {
-	/*
-		validasi ukuran
-		buat format file apa saja yang bisa di unggah
-		cek format content
-		hapus source lama
-		buat format penamaan file yang di unggah dan
-		save ke folder yang dibuat
-		buat file path gambar
-	*/
-
-	if fileHeader.Size > 1*1024*1024 {
-		return "", appError.FileTooLarge
-	}
-	file, err := fileHeader.Open()
-	if err != nil {
-		return "", err
-	}
-	defer func(file multipart.File) {
-		err := file.Close()
-		if err != nil {
-			log.Println("close error :", err)
-		}
-	}(file)
-
-	buf := make([]byte, 512)
-	if _, err := file.Read(buf); err != nil {
-		return "", err
-	}
-
-	mimeType := http.DetectContentType(buf)
-
-	allowedTypes := map[string]string{
-		"image/jpeg": ".jpg",
-		"image/png":  ".png",
-		"image/webp": ".webp",
-	}
-	ext, allowed := allowedTypes[mimeType]
-	if !allowed {
-		return "", appError.FileTypeNotAllowed
-	}
-
-	oldProfile, err := s.userRepository.GetUserProfile(ctx, userID)
-	log.Println("old file", oldProfile.ProfilePictureURL, "errornya apa ya?", err)
-	if err == nil && oldProfile.ProfilePictureURL != nil && *oldProfile.ProfilePictureURL != "" {
-		oldPath := filepath.Join("public", *oldProfile.ProfilePictureURL)
-		err := os.Remove(oldPath)
-		if err != nil {
-			return "", err
-		}
-	}
-
-	filename := fmt.Sprintf("user_%d_%d%s", userID, time.Now().UnixNano(), ext)
-	savePath := filepath.Join("public", "img", filename)
-
-	if _, err := file.Seek(0, io.SeekStart); err != nil {
-		return "", err
-	}
-
-	dst, err := os.Create(savePath)
-	if err != nil {
-		return "", err
-	}
-	defer func(dst *os.File) {
-		err := dst.Close()
-		if err != nil {
-			log.Println("close error :", err)
-		}
-	}(dst)
-	if _, err := io.Copy(dst, file); err != nil {
-		return "", err
-	}
-
-	publicURL := fmt.Sprintf("/img/profiles/%s", filename)
-	if err := s.userRepository.UpdateProfilePictureURL(ctx, userID, publicURL); err != nil {
-		err := os.Remove(savePath)
-		if err != nil {
-			return "", err
-		}
-		return "", err
 	}
 
 	return publicURL, nil
