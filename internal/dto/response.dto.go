@@ -39,7 +39,7 @@ type RegisterDTO struct {
 
 type LoginDTO struct {
 	FullName string `json:"full_name" example:"John Doe"`
-	Email    string `json:"email" example:"example@mail.com"`
+	HasPin   bool   `json:"has_pin"   example:"true"`
 	Token    string `json:"token"`
 }
 
@@ -105,4 +105,8 @@ type GetTransactionHistoryDTO struct {
 	ReceiverName      string  `json:"receiver_name"`
 	Phone             string  `json:"phone"`
 	ProfilePictureUrl string  `json:"profile_picture_url"`
+}
+
+type NewBalanceDTO struct {
+	Balance float64 `json:"balance"`
 }
