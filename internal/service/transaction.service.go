@@ -86,12 +86,21 @@ func (s *TransactionService) CreateTransfer(ctx context.Context, senderID int, r
 		}
 	}(tx, ctx)
 
-	transactionID, err := s.transactionRepo.InsertTransaction(ctx, tx, senderID, req.Amount, "expense", "transfer")
+	senderTxID, err := s.transactionRepo.InsertTransaction(ctx, tx, senderID, req.Amount, "expense", "transfer")
 	if err != nil {
 		return err
 	}
 
-	if err := s.transactionRepo.InsertTransferDetail(ctx, tx, transactionID, req.ReceiverID, req.Description); err != nil {
+	receiverTxID, err := s.transactionRepo.InsertTransaction(ctx, tx, req.ReceiverID, req.Amount, "income", "transfer")
+	if err != nil {
+		return err
+	}
+
+	if err := s.transactionRepo.InsertTransferDetail(ctx, tx, senderTxID, req.ReceiverID, req.Description); err != nil {
+		return err
+	}
+
+	if err := s.transactionRepo.InsertTransferDetail(ctx, tx, receiverTxID, senderID, req.Description); err != nil {
 		return err
 	}
 
