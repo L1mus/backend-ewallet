@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"context"
+	"log"
 
 	"github.com/L1mus/backend-ewallet/internal/cache"
 	"github.com/L1mus/backend-ewallet/internal/response"
@@ -15,10 +15,21 @@ func CheckBlacklist(rdb *redis.Client) gin.HandlerFunc {
 			ambil token mentah
 			Cek ke Redis apakah token ini sudah di blacklist
 		*/
-		rawToken, _ := ctx.Get("raw_token")
-		tokenStr := rawToken.(string)
+		rawToken, exists := ctx.Get("raw_token")
+		if !exists {
+			response.Error(ctx, 401, "unauthorized access, please login")
+			ctx.Abort()
+			return
+		}
+		tokenStr, ok := rawToken.(string)
+		if !ok || tokenStr == "" {
+			response.Error(ctx, 401, "unauthorized access, please login")
+			ctx.Abort()
+			return
+		}
 
-		isBlacklisted, err := cache.IsBlacklisted(context.Background(), rdb, tokenStr)
+		isBlacklisted, err := cache.IsBlacklisted(ctx.Request.Context(), rdb, tokenStr)
+		log.Println(isBlacklisted)
 		if err != nil {
 			response.Error(ctx, 500, "failed to validate session status")
 			ctx.Abort()
@@ -26,7 +37,7 @@ func CheckBlacklist(rdb *redis.Client) gin.HandlerFunc {
 		}
 
 		if isBlacklisted {
-			response.Error(ctx, 401, "Session has expired, please login again")
+			response.Error(ctx, 401, "session has expired, please login again")
 			ctx.Abort()
 			return
 		}
