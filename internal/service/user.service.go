@@ -112,10 +112,10 @@ func (s *UserService) FindReceiver(ctx context.Context, id int, req dto.PageQuer
 	prevLink := ""
 	nextLink := ""
 	if page > 1 {
-		prevLink = fmt.Sprintf("http://localhost:8080/users/transactions?search=%s&page=%d", req.Search, page-1)
+		prevLink = fmt.Sprintf("http://localhost:8080/users/transfer?search=%s&page=%d", req.Search, page-1)
 	}
 	if page < totalPage {
-		nextLink = fmt.Sprintf("http://localhost:8080/users/transactions?search=%s&page=%d", req.Search, page+1)
+		nextLink = fmt.Sprintf("http://localhost:8080/users/transfer?search=%s&page=%d", req.Search, page+1)
 	}
 
 	var users []dto.FindReceiverDTO
