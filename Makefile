@@ -22,6 +22,6 @@ migrate-force:
 
 db-seed:
 	@echo "Run seeding data..."
-	psql $(DATABASE_URL) -f seeding.sql
+	psql $(DATABASE_URL) -f db/seeds/seeding.sql
 	@echo "Success seeding data"
 
