@@ -30,7 +30,6 @@ type EditPinRequest struct {
 type EditPasswordRequest struct {
 	CurrentPassword string `json:"current_password" binding:"required"`
 	NewPassword     string `json:"new_password"     binding:"required,min=8"`
-	ConfirmPassword string `json:"confirm_password" binding:"required,eqfield=NewPassword"`
 }
 
 type EditProfileRequest struct {
