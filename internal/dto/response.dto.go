@@ -71,14 +71,21 @@ type FindReceiverResponse struct {
 }
 
 type GetTransactionReportDTO struct {
-	Period       *time.Time `db:"period"`
-	TotalIncome  float32    `db:"total_income"`
-	TotalExpense float32    `db:"total_expense"`
+	Period       string  `json:"period"`
+	TotalIncome  float32 `json:"total_income"`
+	TotalExpense float32 `json:"total_expense"`
+}
+
+type ReportSummaryDTO struct {
+	TotalIncome  float32 `json:"total-income"`
+	TotalExpense float32 `json:"total-expense"`
+	NetAmount    float32 `json:"net_amount"`
 }
 
 type GetTransactionReportResponse struct {
-	ResponseSuccess
-	Data []GetTransactionReportDTO
+	Period  string
+	Summary ReportSummaryDTO
+	Data    []GetTransactionReportDTO
 }
 
 type PaginationMetaData struct {
