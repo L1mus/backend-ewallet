@@ -174,40 +174,48 @@ func (c *UserController) GetTransactionHistory(ctx *gin.Context) {
 	response.SuccessWithMetaData(ctx, 200, "Get data success", res, metaData)
 }
 
-// EditProfile
+// UpdateProfile
 //
-// @Summary      Edit user profile
-// @Description  Update the authenticated user's full name, phone number, and profile picture URL
+// @Summary      Update User Profile
+// @Description  Update full name, phone number, and avatar image simultaneously using multipart/form-data
 // @Tags         users
-// @Accept       json
+// @Accept       multipart/form-data
 // @Produce      json
 // @Security     ApiKeyAuth
-// @Param        body  body      dto.EditProfileRequest  true  "Edit Profile Payload"
-// @Success      200   {object}  dto.ResponseSuccess
-// @Failure      400   {object}  dto.ResponseError
-// @Failure      500   {object}  dto.ResponseError
-// @Router       /users/profile [patch]
-func (c *UserController) EditProfile(ctx *gin.Context) {
+// @Param        full_name  formData  string  false  "Full Name"
+// @Param        phone      formData  string  false  "Phone Number"
+// @Param        picture    formData  file    false  "Avatar profile image (jpg, png, max 2MB)"
+// @Success      200        {object}  dto.ResponseSuccess
+// @Failure      400        {object}  dto.ResponseError
+// @Failure      422        {object}  dto.ResponseError
+// @Failure      500        {object}  dto.ResponseError
+// @Router       /users/profile [put]
+func (c *UserController) UpdateProfile(ctx *gin.Context) {
 	token, _ := ctx.Get("claims")
 	claims := token.(pkg.Claims)
 
-	var body dto.EditProfileRequest
-	if err := ctx.ShouldBindWith(&body, binding.JSON); err != nil {
-		response.Error(ctx, 400, err.Error())
+	var req dto.EditProfileRequest
+	if err := ctx.ShouldBind(&req); err != nil {
+		response.Error(ctx, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	err := c.userService.EditProfile(ctx.Request.Context(), claims.Id, body)
+	fileHeader, err := ctx.FormFile("picture")
+	if err != nil && !errors.Is(err, http.ErrMissingFile) {
+		response.Error(ctx, http.StatusBadRequest, "Invalid Format")
+		return
+	}
+
+	err = c.userService.EditProfile(ctx.Request.Context(), claims.Id, req, fileHeader)
 	if err != nil {
 		if errors.Is(err, appError.PhoneAlreadyExists) {
 			response.Error(ctx, 400, err.Error())
 			return
 		}
-		response.Error(ctx, 500, "internal server error")
+		response.Error(ctx, http.StatusInternalServerError, err.Error())
 		return
 	}
-
-	response.Success(ctx, 200, "Profile updated successfully", nil)
+	response.Success(ctx, http.StatusOK, "Profile successfully updated", nil)
 }
 
 // EditPin
