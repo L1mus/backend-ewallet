@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/L1mus/backend-ewallet/internal/appError"
+	"github.com/L1mus/backend-ewallet/internal/cache"
 	"github.com/L1mus/backend-ewallet/internal/dto"
 	"github.com/L1mus/backend-ewallet/internal/repository"
 	"github.com/L1mus/backend-ewallet/pkg"
@@ -35,6 +36,21 @@ func NewUserService(userRepository *repository.UserRepository, rdb *redis.Client
 }
 
 func (s *UserService) GetUserProfile(ctx context.Context, id int) (dto.GetUserProfileDTO, error) {
+	rkey := fmt.Sprintf("user:profile:%d", id)
+
+	var cachedProfile dto.GetUserProfileDTO
+
+	found, err := cache.GetFromCache(ctx, s.rdb, rkey, &cachedProfile)
+	if err == nil && found {
+		log.Printf("Cache HIT for key: %s Retrieving data from Redis...", rkey)
+		return cachedProfile, nil
+	}
+	if err != nil {
+		log.Printf("Redis error while retrieving cache: %v", err)
+	}
+
+	log.Printf("Cache MISS for key: %s Fetching data from DB...", rkey)
+
 	data, err := s.userRepository.GetUserProfile(ctx, id)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -42,13 +58,22 @@ func (s *UserService) GetUserProfile(ctx context.Context, id int) (dto.GetUserPr
 		}
 		return dto.GetUserProfileDTO{}, err
 	}
-	return dto.GetUserProfileDTO{
+
+	profileDTO := dto.GetUserProfileDTO{
 		Id:                data.Id,
 		FullName:          data.FullName,
 		Email:             data.Email,
 		Phone:             data.Phone,
 		ProfilePictureURL: data.ProfilePictureURL,
-	}, nil
+	}
+
+	cacheTTL := 1 * time.Hour
+	err = cache.SaveToCache(ctx, s.rdb, rkey, profileDTO, cacheTTL)
+	if err != nil {
+		log.Printf("Failed to save data: %v", err)
+	}
+
+	return profileDTO, nil
 }
 
 func (s *UserService) GetUserDashboard(ctx context.Context, id int) (dto.GetUserDashboardDTO, error) {
