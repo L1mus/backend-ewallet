@@ -53,11 +53,15 @@ func (s *AuthService) Login(ctx context.Context, req dto.LoginRequest) (dto.Logi
 	if err := hc.Compare(req.Password, data.HashPassword); err != nil {
 		return dto.LoginDTO{}, appError.EmailOrPassWrong
 	}
+	hasPin := true
+	if data.HashPin == nil {
+		hasPin = false
+	}
 	claims := pkg.NewClaims(data.Id, data.FullName)
-	token, err := claims.GenJWT()
+	token, _ := claims.GenJWT()
 	return dto.LoginDTO{
 		FullName: data.FullName,
-		Email:    data.Email,
+		HasPin:   hasPin,
 		Token:    token,
 	}, nil
 }
