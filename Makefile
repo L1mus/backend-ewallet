@@ -5,6 +5,7 @@ DATABASE_URL=postgresql://$(DB_USER):$(DB_PASS)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)
 PG_PASSWORD=$(DB_PASS)
 
 
+
 migrate-create:
 	@migrate create -ext sql -dir $(MIGRATION_PATH) -seq create_$(NAME)_table
 
@@ -22,6 +23,6 @@ migrate-force:
 
 db-seed:
 	@echo "Run seeding data..."
-	psql $(DATABASE_URL) -f db/seeds/seeding.sql
+	@psql postgresql://$(DB_USER):$(DB_PASS)@$(DB_HOST):$(DB_PORT)/$(DB_NAME) -f db/seeds/seeding.sql
 	@echo "Success seeding data"
 
