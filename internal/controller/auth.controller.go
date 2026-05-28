@@ -4,28 +4,23 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/L1mus/backend-ewallet/internal/appError"
-	"github.com/L1mus/backend-ewallet/internal/cache"
 	"github.com/L1mus/backend-ewallet/internal/dto"
 	"github.com/L1mus/backend-ewallet/internal/response"
 	"github.com/L1mus/backend-ewallet/internal/service"
 	"github.com/L1mus/backend-ewallet/pkg"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
-	"github.com/redis/go-redis/v9"
 )
 
 type AuthController struct {
 	authService *service.AuthService
-	rdb         *redis.Client
 }
 
-func NewAuthController(authService *service.AuthService, rdb *redis.Client) *AuthController {
+func NewAuthController(authService *service.AuthService) *AuthController {
 	return &AuthController{
 		authService: authService,
-		rdb:         rdb,
 	}
 }
 
@@ -145,19 +140,18 @@ func (c *AuthController) Logout(ctx *gin.Context) {
 	claims := token.(pkg.Claims)
 
 	tokenStr, _ := ctx.Get("raw_token")
-	if claims.ExpiresAt == nil {
-		response.Error(ctx, 422, "token does not have expiration claim")
-		return
-	}
-	expirationTime := claims.ExpiresAt.Time
-
-	ttl := time.Until(expirationTime)
-	if ttl > 0 {
-		err := cache.SaveToBlacklist(ctx.Request.Context(), c.rdb, tokenStr.(string), ttl)
-		if err != nil {
-			response.Error(ctx, 500, "failed to invalidate session")
+	err := c.authService.Logout(ctx.Request.Context(), claims, tokenStr.(string))
+	if err != nil {
+		if errors.Is(err, appError.TokenDoesntExpired) {
+			response.Error(ctx, 422, err.Error())
 			return
 		}
+		if errors.Is(err, appError.InvalidateSession) {
+			response.Error(ctx, 500, err.Error())
+			return
+		}
+		response.Error(ctx, 500, "internal server error")
+		return
 	}
 	response.Success(ctx, 200, "Logout complete, session end", nil)
 }

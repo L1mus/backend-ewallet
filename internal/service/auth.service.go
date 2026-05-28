@@ -2,20 +2,25 @@ package service
 
 import (
 	"context"
+	"time"
 
 	"github.com/L1mus/backend-ewallet/internal/appError"
+	"github.com/L1mus/backend-ewallet/internal/cache"
 	"github.com/L1mus/backend-ewallet/internal/dto"
 	"github.com/L1mus/backend-ewallet/internal/repository"
 	"github.com/L1mus/backend-ewallet/pkg"
+	"github.com/redis/go-redis/v9"
 )
 
 type AuthService struct {
 	authRepository *repository.AuthRepository
+	rdb            *redis.Client
 }
 
-func NewAuthService(authRepository *repository.AuthRepository) *AuthService {
+func NewAuthService(authRepository *repository.AuthRepository, rdb *redis.Client) *AuthService {
 	return &AuthService{
 		authRepository: authRepository,
+		rdb:            rdb,
 	}
 }
 
@@ -64,4 +69,18 @@ func (s *AuthService) Login(ctx context.Context, req dto.LoginRequest) (dto.Logi
 		HasPin:   hasPin,
 		Token:    token,
 	}, nil
+}
+
+func (s *AuthService) Logout(ctx context.Context, claims pkg.Claims, token string) error {
+	if claims.ExpiresAt == nil {
+		return appError.TokenDoesntExpired
+	}
+	expirationTime := claims.ExpiresAt.Time
+
+	ttl := time.Until(expirationTime)
+	err := cache.SaveToBlacklist(ctx, s.rdb, token, ttl)
+	if err != nil {
+		return appError.InvalidateSession
+	}
+	return nil
 }

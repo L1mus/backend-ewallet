@@ -18,4 +18,6 @@ var (
 	ReceiverNotFound       = errors.New("receiver not found")
 	SelfTransferNotAllowed = errors.New("cannot transfer to your own account")
 	InvalidPeriod          = errors.New("invalid period")
+	TokenDoesntExpired     = errors.New("token does not have expiration claim")
+	InvalidateSession      = errors.New("failed to invalidate session")
 )
