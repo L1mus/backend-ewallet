@@ -22,7 +22,7 @@ func UserRouter(router *gin.Engine, db *pgxpool.Pool, rdb *redis.Client) {
 	userRouter.GET("/report", userController.GetTransactionReport)
 	userRouter.GET("/transfer", userController.FindReceiver)
 	userRouter.GET("/transactions", userController.GetTransactionHistory)
-	userRouter.PUT("/profile", userController.UpdateProfile)
+	userRouter.PATCH("/profile", userController.UpdateProfile)
 	userRouter.PATCH("/pin", userController.EditPin)
 	userRouter.PATCH("/password", userController.EditPassword)
 }
