@@ -19,4 +19,5 @@ func TransactionRouter(router *gin.Engine, db *pgxpool.Pool, rdb *redis.Client) 
 	transactionController := controller.NewTransactionController(transactionService)
 
 	transactionRouter.POST("/transfer", transactionController.CreateTransfer)
+	transactionRouter.POST("/topup", transactionController.CreateTopup)
 }

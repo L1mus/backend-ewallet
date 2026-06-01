@@ -62,3 +62,41 @@ func (c *TransactionController) CreateTransfer(ctx *gin.Context) {
 
 	response.Success(ctx, 201, "Transfer successful", res)
 }
+
+// CreateTopup
+//
+// @Summary      Create topup
+// @Description  Top up wallet balance. Fee is charged based on payment method + 10% tax from order amount.
+// @Tags         transactions
+// @Accept       json
+// @Produce      json
+// @Security     ApiKeyAuth
+// @Param        body  body      dto.CreateTopupRequest  true  "Topup Payload"
+// @Success      201   {object}  dto.ResponseSuccess{data=dto.TopupDetailDTO}
+// @Failure      400   {object}  dto.ResponseError  "payment method not found | not active | validation error"
+// @Failure      401   {object}  dto.ResponseError  "unauthorized"
+// @Failure      500   {object}  dto.ResponseError  "internal server error"
+// @Router       /transactions/topup [post]
+func (c *TransactionController) CreateTopup(ctx *gin.Context) {
+	token, _ := ctx.Get("claims")
+	claims := token.(pkg.Claims)
+
+	var body dto.CreateTopupRequest
+	if err := ctx.ShouldBindWith(&body, binding.JSON); err != nil {
+		response.Error(ctx, 400, err.Error())
+		return
+	}
+
+	res, err := c.transactionService.CreateTopup(ctx.Request.Context(), claims.Id, body)
+	if err != nil {
+		if errors.Is(err, appError.PaymentMethodNotFound) ||
+			errors.Is(err, appError.PaymentMethodNotActive) {
+			response.Error(ctx, 400, err.Error())
+			return
+		}
+		response.Error(ctx, 500, "internal server error")
+		return
+	}
+
+	response.Success(ctx, 201, "Topup successful", res)
+}

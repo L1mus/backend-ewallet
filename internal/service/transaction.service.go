@@ -2,7 +2,9 @@ package service
 
 import (
 	"context"
+	"errors"
 	"log"
+	"math"
 
 	"github.com/L1mus/backend-ewallet/internal/appError"
 	"github.com/L1mus/backend-ewallet/internal/dto"
@@ -123,5 +125,87 @@ func (s *TransactionService) CreateTransfer(ctx context.Context, senderID int, r
 
 	return dto.NewBalanceDTO{
 		Balance: newBalance,
+	}, nil
+}
+
+func (s *TransactionService) CreateTopup(ctx context.Context, userID int, req dto.CreateTopupRequest) (dto.TopupDetailDTO, error) {
+
+	/*
+			Ambil & validasi payment method
+			Hitung biaya
+			fee = biaya admin dari payment method
+			taxRate = 10% dari order amount
+			total = orderAmount + fee + tax
+		    lakukan DB Transaction
+			1 mulai
+			2. Insert ke table transactions return id transactions
+			3. Insert ke topup_details
+			4. Tambah balance user
+			5 commit
+			jika fail rollback dengan defer fn
+			Ambil balance terbaru
+	*/
+
+	pm, err := s.transactionRepo.GetPaymentMethod(ctx, s.db, req.PaymentMethodID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return dto.TopupDetailDTO{}, appError.PaymentMethodNotFound
+		}
+		return dto.TopupDetailDTO{}, err
+	}
+	if !pm.IsActive {
+		return dto.TopupDetailDTO{}, appError.PaymentMethodNotActive
+	}
+
+	orderAmount := req.Amount
+	fee := pm.Fee
+	taxRate := 0.10
+	taxAmount := math.Round(orderAmount*taxRate*100) / 100
+	totalAmount := orderAmount + fee + taxAmount
+
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return dto.TopupDetailDTO{}, err
+	}
+	defer func(tx pgx.Tx, ctx context.Context) {
+		if err := tx.Rollback(ctx); err != nil {
+			log.Println("rollback error:", err.Error())
+		}
+	}(tx, ctx)
+
+	transactionID, err := s.transactionRepo.InsertTransaction(ctx, tx, userID, orderAmount, "income", "topup")
+	if err != nil {
+		return dto.TopupDetailDTO{}, err
+	}
+
+	if err := s.transactionRepo.InsertTopupDetail(
+		ctx, tx,
+		transactionID, req.PaymentMethodID,
+		orderAmount, fee, taxAmount, totalAmount,
+	); err != nil {
+		return dto.TopupDetailDTO{}, err
+	}
+
+	if err := s.transactionRepo.AddWalletReceiver(ctx, tx, userID, orderAmount); err != nil {
+		return dto.TopupDetailDTO{}, err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return dto.TopupDetailDTO{}, err
+	}
+
+	newBalance, err := s.transactionRepo.GetWalletBalance(ctx, s.db, userID)
+	if err != nil {
+		return dto.TopupDetailDTO{}, err
+	}
+
+	return dto.TopupDetailDTO{
+		TransactionID: transactionID,
+		PaymentMethod: pm.Name,
+		OrderAmount:   orderAmount,
+		Fee:           fee,
+		TaxAmount:     taxAmount,
+		TotalAmount:   totalAmount,
+		NewBalance:    newBalance,
 	}, nil
 }

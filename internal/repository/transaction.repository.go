@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/L1mus/backend-ewallet/internal/appError"
+	"github.com/L1mus/backend-ewallet/internal/model"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 )
@@ -79,5 +80,22 @@ func (r *TransactionRepository) ReduceWalletSender(ctx context.Context, dbtx DBT
 func (r *TransactionRepository) AddWalletReceiver(ctx context.Context, dbtx DBTX, userID int, amount float64) error {
 	sql := `UPDATE wallet SET balance = balance + $1, updated_at = NOW() WHERE user_id = $2`
 	_, err := dbtx.Exec(ctx, sql, amount, userID)
+	return err
+}
+
+func (r *TransactionRepository) GetPaymentMethod(ctx context.Context, dbtx DBTX, paymentMethodID int) (model.PaymentMethod, error) {
+	var pm model.PaymentMethod
+	sql := `SELECT id, name, fee, is_active FROM payment_method WHERE id = $1`
+	if err := dbtx.QueryRow(ctx, sql, paymentMethodID).Scan(
+		&pm.Id, &pm.Name, &pm.Fee, &pm.IsActive,
+	); err != nil {
+		return model.PaymentMethod{}, err
+	}
+	return pm, nil
+}
+
+func (r *TransactionRepository) InsertTopupDetail(ctx context.Context, dbtx DBTX, transactionID, paymentMethodID int, orderAmount, fee, taxAmount, totalAmount float64) error {
+	sql := `INSERT INTO topup_details (transaction_id, payment_method_id, order_amount, delivery_fee, tax_amount, total_amount) VALUES ($1, $2, $3, $4, $5, $6)`
+	_, err := dbtx.Exec(ctx, sql, transactionID, paymentMethodID, orderAmount, fee, taxAmount, totalAmount)
 	return err
 }

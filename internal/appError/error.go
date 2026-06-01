@@ -20,4 +20,6 @@ var (
 	InvalidPeriod          = errors.New("invalid period")
 	TokenDoesntExpired     = errors.New("token does not have expiration claim")
 	InvalidateSession      = errors.New("failed to invalidate session")
+	PaymentMethodNotFound  = errors.New("payment method not found")
+	PaymentMethodNotActive = errors.New("payment method is not active")
 )

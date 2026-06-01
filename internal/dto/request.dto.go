@@ -44,3 +44,8 @@ type CreateTransferRequest struct {
 	Description string  `json:"description"`
 	Pin         string  `json:"pin"          binding:"required,len=6"`
 }
+
+type CreateTopupRequest struct {
+	PaymentMethodID int     `json:"payment_method_id" binding:"required"`
+	Amount          float64 `json:"amount"            binding:"required,gt=0"`
+}

@@ -110,3 +110,13 @@ type GetTransactionHistoryDTO struct {
 type NewBalanceDTO struct {
 	Balance float64 `json:"balance"`
 }
+
+type TopupDetailDTO struct {
+	TransactionID int     `json:"transaction_id"`
+	PaymentMethod string  `json:"payment_method"`
+	OrderAmount   float64 `json:"order_amount"`
+	Fee           float64 `json:"fee"`
+	TaxAmount     float64 `json:"tax_amount"`
+	TotalAmount   float64 `json:"total_amount"`
+	NewBalance    float64 `json:"new_balance"`
+}
