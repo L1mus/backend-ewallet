@@ -209,7 +209,7 @@ func (c *UserController) GetTransactionHistory(ctx *gin.Context) {
 // @Failure      409        {object}  dto.ResponseError "Phone Number Already Exists"
 // @Failure      422        {object}  dto.ResponseError "File to large || File type not allowed"
 // @Failure      500        {object}  dto.ResponseError "Internal Server Error"
-// @Router       /users/profile [put]
+// @Router       /users/profile [patch]
 func (c *UserController) UpdateProfile(ctx *gin.Context) {
 	token, _ := ctx.Get("claims")
 	claims := token.(pkg.Claims)
