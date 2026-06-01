@@ -59,3 +59,8 @@ type ResetPasswordRequest struct {
 	NewPassword     string `json:"new_password"     binding:"required,min=8"`
 	ConfirmPassword string `json:"confirm_password" binding:"required,eqfield=NewPassword"`
 }
+
+type CreatePinRequest struct {
+	NewPin        string `json:"new_pin"         binding:"required,len=6"`
+	ConfirmNewPin string `json:"confirm_new_pin" binding:"required,eqfield=NewPin"`
+}
