@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/L1mus/backend-ewallet/internal/model"
 	"github.com/jackc/pgx/v5"
@@ -72,4 +73,44 @@ func (r *AuthRepository) Login(ctx context.Context, email string) (model.User, e
 		return model.User{}, err
 	}
 	return user, nil
+}
+
+func (r *AuthRepository) GetUserByEmail(ctx context.Context, email string) (model.User, error) {
+	sql := `SELECT id, full_name, email, is_verified FROM users WHERE email = $1 AND deleted_at IS NULL`
+	var user model.User
+	if err := r.db.QueryRow(ctx, sql, email).Scan(
+		&user.Id, &user.FullName, &user.Email, &user.IsVerified,
+	); err != nil {
+		return model.User{}, err
+	}
+	return user, nil
+}
+
+func (r *AuthRepository) InsertForgotPasswordToken(ctx context.Context, userID int, token string, expiredAt time.Time) error {
+	sql := `INSERT INTO forgot_password (user_id, token, expired_at) VALUES ($1, $2, $3)`
+	_, err := r.db.Exec(ctx, sql, userID, token, expiredAt)
+	return err
+}
+
+func (r *AuthRepository) GetForgotPasswordToken(ctx context.Context, token string) (model.ForgotPassword, error) {
+	sql := `SELECT id, user_id, token, is_used, created_at, expired_at FROM forgot_password WHERE token = $1`
+	var fp model.ForgotPassword
+	if err := r.db.QueryRow(ctx, sql, token).Scan(
+		&fp.Id, &fp.UserID, &fp.Token, &fp.IsUsed, &fp.CreatedAt, &fp.ExpiredAt,
+	); err != nil {
+		return model.ForgotPassword{}, err
+	}
+	return fp, nil
+}
+
+func (r *AuthRepository) MarkTokenAsUsed(ctx context.Context, tokenID int) error {
+	sql := `UPDATE forgot_password SET is_used = TRUE WHERE id = $1`
+	_, err := r.db.Exec(ctx, sql, tokenID)
+	return err
+}
+
+func (r *AuthRepository) UpdatePassword(ctx context.Context, userID int, hashPassword string) error {
+	sql := `UPDATE users SET hash_password = $1, updated_at = NOW() WHERE id = $2`
+	_, err := r.db.Exec(ctx, sql, hashPassword, userID)
+	return err
 }

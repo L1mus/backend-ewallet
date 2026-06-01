@@ -155,3 +155,75 @@ func (c *AuthController) Logout(ctx *gin.Context) {
 	}
 	response.Success(ctx, 200, "Logout complete, session end", nil)
 }
+
+// ForgotPassword
+//
+// @Summary      Forgot password
+// @Description  Request a password reset token. In production this would be sent via email. Token is valid for 1 hour.
+// @Tags         Auth
+// @Accept       json
+// @Produce      json
+// @Param        body  body      dto.ForgotPasswordRequest  true  "Forgot Password Payload"
+// @Success      200   {object}  dto.ResponseSuccess{data=dto.ForgotPasswordDTO}
+// @Failure      400   {object}  dto.ResponseError  "invalid email format"
+// @Failure      404   {object}  dto.ResponseError  "user not found"
+// @Failure      500   {object}  dto.ResponseError  "internal server error"
+// @Router       /auth/forgot-password [post]
+func (c *AuthController) ForgotPassword(ctx *gin.Context) {
+	var body dto.ForgotPasswordRequest
+	if err := ctx.ShouldBindWith(&body, binding.JSON); err != nil {
+		response.Error(ctx, 400, err.Error())
+		return
+	}
+
+	res, err := c.authService.ForgotPassword(ctx.Request.Context(), body)
+	if err != nil {
+		if errors.Is(err, appError.UserNotFound) {
+			response.Error(ctx, 404, err.Error())
+			return
+		}
+		response.Error(ctx, 500, "internal server error")
+		return
+	}
+
+	response.Success(ctx, 200, "Reset token generated successfully", res)
+}
+
+// ResetPassword
+//
+// @Summary      Reset password
+// @Description  Reset user password using a valid token from forgot-password endpoint. Token can only be used once and expires in 1 hour.
+// @Tags         Auth
+// @Accept       json
+// @Produce      json
+// @Param        body  body      dto.ResetPasswordRequest  true  "Reset Password Payload"
+// @Success      200   {object}  dto.ResponseSuccess
+// @Failure      400   {object}  dto.ResponseError  "Validate Binding GIN"
+// @Failure      404   {object}  dto.ResponseError  "token not found"
+// @Failure      422   {object}  dto.ResponseError  "token used | token expired"
+// @Failure      500   {object}  dto.ResponseError  "internal server error"
+// @Router       /auth/reset-password [post]
+func (c *AuthController) ResetPassword(ctx *gin.Context) {
+	var body dto.ResetPasswordRequest
+	if err := ctx.ShouldBindWith(&body, binding.JSON); err != nil {
+		response.Error(ctx, 400, err.Error())
+		return
+	}
+
+	err := c.authService.ResetPassword(ctx.Request.Context(), body)
+	if err != nil {
+		if errors.Is(err, appError.ForgotPasswordTokenNotFound) {
+			response.Error(ctx, 404, err.Error())
+			return
+		}
+		if errors.Is(err, appError.ForgotPasswordTokenExpired) ||
+			errors.Is(err, appError.ForgotPasswordTokenUsed) {
+			response.Error(ctx, 422, err.Error())
+			return
+		}
+		response.Error(ctx, 500, "internal server error")
+		return
+	}
+
+	response.Success(ctx, 200, "Password reset successfully", nil)
+}

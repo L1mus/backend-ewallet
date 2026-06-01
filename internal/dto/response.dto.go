@@ -120,3 +120,8 @@ type TopupDetailDTO struct {
 	TotalAmount   float64 `json:"total_amount"`
 	NewBalance    float64 `json:"new_balance"`
 }
+
+type ForgotPasswordDTO struct {
+	Token     string    `json:"token"`
+	ExpiredAt time.Time `json:"expired_at"`
+}
