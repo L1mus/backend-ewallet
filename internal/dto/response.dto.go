@@ -83,9 +83,9 @@ type ReportSummaryDTO struct {
 }
 
 type GetTransactionReportResponse struct {
-	Period  string
-	Summary ReportSummaryDTO
-	Data    []GetTransactionReportDTO
+	Period  string                    `json:"period"`
+	Summary ReportSummaryDTO          `json:"summary"`
+	Data    []GetTransactionReportDTO `json:"data"`
 }
 
 type PaginationMetaData struct {
