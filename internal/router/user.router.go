@@ -25,4 +25,5 @@ func UserRouter(router *gin.Engine, db *pgxpool.Pool, rdb *redis.Client) {
 	userRouter.PATCH("/profile", userController.UpdateProfile)
 	userRouter.PATCH("/pin", userController.EditPin)
 	userRouter.PATCH("/password", userController.EditPassword)
+	userRouter.POST("/pin/create", userController.CreatePin)
 }

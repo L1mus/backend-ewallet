@@ -395,3 +395,20 @@ func (s *UserService) EditPassword(ctx context.Context, id int, req dto.EditPass
 
 	return s.userRepository.UpdatePassword(ctx, id, hashNewPassword)
 }
+
+func (s *UserService) CreatePin(ctx context.Context, id int, req dto.CreatePinRequest) error {
+	data, err := s.userRepository.GetPin(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	if data.HashPin != nil {
+		return appError.WrongPin
+	}
+
+	var hc pkg.HashConfig
+	hc.UseRecommended()
+	hashNewPin := hc.GenHash(req.NewPin)
+
+	return s.userRepository.UpdatePin(ctx, id, hashNewPin)
+}

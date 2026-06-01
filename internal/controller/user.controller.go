@@ -315,3 +315,40 @@ func (c *UserController) EditPassword(ctx *gin.Context) {
 
 	response.Success(ctx, 200, "Password updated successfully", nil)
 }
+
+// CreatePin
+//
+// @Summary      create PIN for first time
+// @Description  Create a new transaction PIN. Only works if user does not have a PIN yet.
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Security     APIKeyAuth
+// @Param        body  body      dto.createPinRequest  true  "Create PIN Payload"
+// @Success      200   {object}  dto.ResponseSuccess
+// @Failure      400   {object}  dto.ResponseError "PIN already Create use change pin instead"
+// @Failure      401   {object}  dto.ResponseError "Unauthorized"
+// @Failure      500   {object}  dto.ResponseError "Internal Server Error"
+// @Router       /users/pin/set [post]
+func (c *UserController) CreatePin(ctx *gin.Context) {
+	token, _ := ctx.Get("claims")
+	claims := token.(pkg.Claims)
+
+	var body dto.CreatePinRequest
+	if err := ctx.ShouldBindWith(&body, binding.JSON); err != nil {
+		response.Error(ctx, 400, err.Error())
+		return
+	}
+
+	err := c.userService.CreatePin(ctx.Request.Context(), claims.Id, body)
+	if err != nil {
+		if errors.Is(err, appError.WrongPin) {
+			response.Error(ctx, 400, "PIN already create, please use change PIN instead")
+			return
+		}
+		response.Error(ctx, 500, "internal server error")
+		return
+	}
+
+	response.Success(ctx, 201, "PIN created successfully", nil)
+}
