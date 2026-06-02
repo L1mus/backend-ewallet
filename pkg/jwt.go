@@ -2,7 +2,6 @@ package pkg
 
 import (
 	"errors"
-	"log"
 	"os"
 	"time"
 
@@ -40,7 +39,7 @@ func (c *Claims) VerifyJWT(token string) error {
 	if jwtSecret == "" {
 		return errors.New("missing jwt secret")
 	}
-	log.Println("Token", token)
+
 	jwtToken, err := jwt.ParseWithClaims(token, c, func(t *jwt.Token) (any, error) {
 		return []byte(jwtSecret), nil
 	})

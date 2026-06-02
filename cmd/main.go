@@ -10,7 +10,6 @@ import (
 	"github.com/L1mus/backend-ewallet/internal/config"
 	"github.com/L1mus/backend-ewallet/internal/router"
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 )
 
 // @title           E-Wallet API
@@ -31,9 +30,9 @@ import (
 // @name Authorization
 // @description Bearer token used for authorization
 func main() {
-	if err := godotenv.Load(); err != nil {
-		log.Fatalf("Error loading env. \ncause: %s", err.Error())
-	}
+	//if err := godotenv.Load(); err != nil {
+	//	log.Fatalf("Error loading env. \ncause: %s", err.Error())
+	//}
 	if err := os.MkdirAll(filepath.Join("public", "img"), os.ModePerm); err != nil {
 		log.Fatalf("Failed to create upload directory: %s", err.Error())
 	}

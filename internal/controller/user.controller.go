@@ -2,7 +2,6 @@ package controller
 
 import (
 	"errors"
-	"log"
 	"net/http"
 
 	"github.com/L1mus/backend-ewallet/internal/appError"
@@ -183,7 +182,6 @@ func (c *UserController) GetTransactionHistory(ctx *gin.Context) {
 	claims := token.(pkg.Claims)
 
 	res, metaData, err := c.userService.GetTransactionHistory(ctx.Request.Context(), claims.Id, req)
-	log.Println("res :\n", res, "meta :\n", metaData, "error :", err)
 	if err != nil {
 		response.Error(ctx, 500, "internal server")
 		return
@@ -324,7 +322,7 @@ func (c *UserController) EditPassword(ctx *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Security     APIKeyAuth
-// @Param        body  body      dto.createPinRequest  true  "Create PIN Payload"
+// @Param        body  body      dto.CreatePinRequest  true  "Create PIN Payload"
 // @Success      200   {object}  dto.ResponseSuccess
 // @Failure      400   {object}  dto.ResponseError "PIN already Create use change pin instead"
 // @Failure      401   {object}  dto.ResponseError "Unauthorized"

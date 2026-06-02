@@ -3,7 +3,6 @@ package cache
 import (
 	"context"
 	"encoding/json"
-	"log"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -47,7 +46,6 @@ func SaveToBlacklist(ctx context.Context, rdb *redis.Client, token string, expir
 
 func IsBlacklisted(ctx context.Context, rdb *redis.Client, token string) (bool, error) {
 	rkey := "blacklist:" + token
-	log.Println("rkeynya", rkey)
 	n, err := rdb.Exists(ctx, rkey).Result()
 	if err != nil {
 		return false, err

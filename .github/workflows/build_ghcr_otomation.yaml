@@ -1,0 +1,10 @@
+name: success message
+on:
+  push:
+    branches: master
+jobs:
+  Build-And-Publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: SayHello
+        run: echo "Your Push success"

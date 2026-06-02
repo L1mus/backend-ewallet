@@ -1,8 +1,6 @@
 package middleware
 
 import (
-	"log"
-
 	"github.com/L1mus/backend-ewallet/internal/cache"
 	"github.com/L1mus/backend-ewallet/internal/response"
 	"github.com/gin-gonic/gin"
@@ -29,7 +27,6 @@ func CheckBlacklist(rdb *redis.Client) gin.HandlerFunc {
 		}
 
 		isBlacklisted, err := cache.IsBlacklisted(ctx.Request.Context(), rdb, tokenStr)
-		log.Println(isBlacklisted)
 		if err != nil {
 			response.Error(ctx, 500, "failed to validate session status")
 			ctx.Abort()
