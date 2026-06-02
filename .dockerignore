@@ -1,0 +1,12 @@
+tmp
+.air.toml
+db
+public
+schema
+.env
+.env_example
+.env.production
+.gitignore
+Makefile
+.github
+.idea
