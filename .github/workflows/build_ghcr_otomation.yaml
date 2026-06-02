@@ -1,13 +1,16 @@
-name: success message
-on: [push]
+name: Build And Publish to GHCR
+on:
+  push:
+    branches: main
+
 jobs:
-  say-success:
+  Build_And_Publish:
     runs-on: ubuntu-latest
     steps:
-      - name: SayHello
-        run: echo "Your Push success"
-  say-hello:
-    runs-on: ubuntu-latest
-    steps:
-      - name: SayHello ${{ github.repository }}
-        run: echo "Hello ${{ github.repository }}"
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Build And Publish ${{github.repository}}
+        uses: macbre/push-to-ghcr@main
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          image_name: ${{ github.repository }}/backend-ewallet
