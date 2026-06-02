@@ -10,7 +10,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
       - name: Build And Publish ${{github.repository}}
-        uses: macbre/push-to-ghcr@main
+        uses: macbre/push-to-ghcr@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           image_name: ${{ github.repository }}/backend-ewallet
