@@ -1,9 +1,7 @@
 name: success message
-on:
-  push:
-    branches: master
+on: [push]
 jobs:
-  Build-And-Publish:
+  say-hello:
     runs-on: ubuntu-latest
     steps:
       - name: SayHello
