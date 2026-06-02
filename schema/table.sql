@@ -185,10 +185,5 @@ CREATE INDEX idx_topup_details_trx_id ON topup_details (transaction_id);
 CREATE INDEX idx_users_full_name ON users (full_name);
 CREATE INDEX idx_users_phone ON users (phone);
 
-SELECT  t.id AS transaction_id, t.amount, t.type, t.activity_type, t.status, t.created_at, u_receiver.full_name AS receiver_name,COUNT(*) OVER() AS total_count
-FROM transactions t
-LEFT JOIN transfer_details td ON t.id = td.transaction_id
-LEFT JOIN users u_receiver ON td.receiver_id = u_receiver.id
-WHERE t.user_id = 1
-ORDER BY t.created_at DESC
-LIMIT 10 OFFSET 0;
+select * from users u join wallet w on u.id = w.user_id
+;
