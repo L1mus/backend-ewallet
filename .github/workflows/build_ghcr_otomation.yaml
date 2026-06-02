@@ -1,7 +1,5 @@
 name: success message
-on:
-  push:
-    branches: master
+on: [push]
 jobs:
   say-hello:
     runs-on: ubuntu-latest
