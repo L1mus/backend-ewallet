@@ -1,8 +1,13 @@
 name: success message
 on: [push]
 jobs:
-  say-hello:
+  say-success:
     runs-on: ubuntu-latest
     steps:
       - name: SayHello
         run: echo "Your Push success"
+  say-hello:
+    runs-on: ubuntu-latest
+    steps:
+      - name: SayHello ${{ github.repository }}
+        run: echo "Hello ${{ github.repository }}"
