@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -11,12 +12,15 @@ import (
 
 func main() {
 	if err := godotenv.Load(); err != nil {
-		log.Printf("Failed to load Environtment Variable")
+		log.Printf("Failed to load Environment Variable")
 	}
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("POST /hello", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Hello World")
+		_, err := fmt.Fprintf(w, "Hello World")
+		if err != nil {
+			return
+		}
 	})
 
 	s := &http.Server{
@@ -25,7 +29,7 @@ func main() {
 	}
 
 	log.Printf("Starting server %s", os.Getenv("PORT"))
-	if err := s.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Fatal("Server startup failed")
+	if err := s.ListenAndServe(); err != nil && !errors.Is(http.ErrServerClosed, err) {
+		log.Fatal("Server startup failed", err)
 	}
 }
