@@ -53,5 +53,39 @@ func (r *userRepository) FindByEmail(ctx context.Context, email string) (*domain
 }
 
 func (r *userRepository) Save(ctx context.Context, u *domainUser.User) error {
+	tx, err := r.db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
+	if err != nil {
+		return err
+	}
+
+	committed := false
+	defer func() {
+		if committed {
+			return
+		}
+		if rbErr := tx.Rollback(); rbErr != nil && !errors.Is(rbErr, sql.ErrTxDone) {
+			log.Printf("save user: rollback failed: %v", rbErr)
+		}
+	}()
+
+	qUser := `INSERT INTO users(full_name,email,hash_password) VALUES($1,$2,$3) RETURNING id`
+
+	var userID string
+
+	err = tx.QueryRowContext(ctx, qUser, u.FullName, u.Email, u.HashPassword).Scan(&userID)
+	if err != nil {
+		return fmt.Errorf("insert user: %w", err)
+	}
+
+	qWallet := `INSERT INTO wallet (user_id) VALUES ($1)`
+	if _, err = tx.ExecContext(ctx, qWallet, userID); err != nil {
+		return fmt.Errorf("insert wallet: %w", err)
+	}
+
+	if err = tx.Commit(); err != nil {
+		return fmt.Errorf("commit: %w", err)
+	}
+	committed = true
+
 	return nil
 }
