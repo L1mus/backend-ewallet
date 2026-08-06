@@ -3,14 +3,16 @@ package user
 import "time"
 
 type User struct {
-	ID           int
-	FullName     string
-	Email        string
-	HashPassword string
-	HashPin      string
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
-	DeletedAt    time.Time
+	ID                int
+	FullName          string
+	Email             string
+	HashPassword      string
+	HashPin           string
+	Phone             string
+	ProfilePictureURL string
+	CreatedAt         time.Time
+	UpdatedAt         time.Time
+	DeletedAt         time.Time
 }
 
 type Wallet struct {
