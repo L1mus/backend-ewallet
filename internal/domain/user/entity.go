@@ -3,7 +3,7 @@ package user
 import "time"
 
 type User struct {
-	ID                int
+	ID                string
 	FullName          string
 	Email             string
 	HashPassword      string
@@ -16,8 +16,7 @@ type User struct {
 }
 
 type Wallet struct {
-	ID            int
-	UserID        int
+	UserID        string
 	BalanceOnCent float64
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
