@@ -28,6 +28,7 @@ func (e *AppError) Unwrap() error {
 func NewAppErrorValidate(message string, fieldErrors map[string]string) *AppError {
 	return &AppError{
 		StatusCode: http.StatusBadRequest,
+		Code:       "VALIDATION_ERROR",
 		Message:    message,
 		Errors:     fieldErrors,
 	}
