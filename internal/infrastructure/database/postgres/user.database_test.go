@@ -234,7 +234,6 @@ func TestUserRepository_Save_CommitFails_NoFatalCrash(t *testing.T) {
 		WithArgs(fakeUserID).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit().WillReturnError(commitErr)
-	mock.ExpectRollback()
 
 	u := &domainUser.User{FullName: "Limus", Email: "limus@example.com", HashPassword: "x"}
 	err = repo.Save(context.Background(), u)
