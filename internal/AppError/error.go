@@ -41,3 +41,13 @@ func NewAppError(statusCode int, message string) *AppError {
 		Message:    message,
 	}
 }
+
+// untuk membungkus error internal dari domain/usecase/infrastruktur
+func NewFromError(statusCode int, code, safeMessage string, err error) *AppError {
+	return &AppError{
+		StatusCode: statusCode,
+		Code:       code,
+		Message:    safeMessage,
+		Err:        err,
+	}
+}
