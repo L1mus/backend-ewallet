@@ -20,6 +20,10 @@ func (e *AppError) Error() string {
 	return e.Message
 }
 
+func (e *AppError) Unwrap() error {
+	return e.Err
+}
+
 // untuk error validation client request  400
 func NewAppErrorValidate(message string, fieldErrors map[string]string) *AppError {
 	return &AppError{
