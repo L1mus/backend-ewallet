@@ -1,13 +1,16 @@
 package apperror
 
 import (
+	"fmt"
 	"net/http"
 )
 
 type AppError struct {
-	StatusCode int
+	StatusCode int    `json:"-"`
+	Code       string `json:"code,omitempty"`
 	Message    string
-	Errors     map[string]string
+	Errors     map[string]string `json:"errors,omitempty"`
+	Err        error             `json:"-"` // contain error internal for logging, didnt serialize to JSON
 }
 
 func (e *AppError) Error() string {
