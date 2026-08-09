@@ -1,12 +1,10 @@
 package router
 
-import "net/http"
+import (
+	"database/sql"
+	"net/http"
+)
 
-func MainRoute(handler *http.Handler) http.Handler {
-	mux := http.NewServeMux()
-
-	//users
-	mux.Handle("POST /api/auth")
-
-	return mux
+func MainRoute(mux *http.ServeMux, db *sql.DB) {
+	AuthRoute(mux, db)
 }
