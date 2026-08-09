@@ -3,13 +3,14 @@ package main
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/L1mus/backend-ewallet/internal/infrastructure/config"
 	"github.com/L1mus/backend-ewallet/internal/infrastructure/database/postgres"
+	"github.com/L1mus/backend-ewallet/internal/interfaces/http/middleware"
+	"github.com/L1mus/backend-ewallet/internal/interfaces/http/router"
 	"github.com/joho/godotenv"
 )
 
@@ -39,16 +40,14 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("POST /hello", func(w http.ResponseWriter, r *http.Request) {
-		_, err := fmt.Fprintf(w, "Hello World")
-		if err != nil {
-			return
-		}
-	})
+	// App route
+	router.MainRoute(mux, db)
+
+	handlerWithRecovery := middleware.Recovery(mux)
 
 	s := &http.Server{
 		Addr:    ":" + os.Getenv("PORT"),
-		Handler: mux,
+		Handler: handlerWithRecovery,
 	}
 
 	log.Printf("Starting server %s", os.Getenv("PORT"))
