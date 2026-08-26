@@ -7,13 +7,31 @@ import (
 	"net/http"
 
 	apperror "github.com/L1mus/backend-ewallet/internal/AppError"
+	domainAuth "github.com/L1mus/backend-ewallet/internal/domain/auth"
 	domainUser "github.com/L1mus/backend-ewallet/internal/domain/user"
+	"github.com/L1mus/backend-ewallet/internal/infrastructure/mail"
 )
 
 func mapDomainError(err error) *apperror.AppError {
 	switch {
+	// --- domain: user ---
 	case errors.Is(err, domainUser.ErrEmailAlreadyExist):
-		return apperror.NewFromError(http.StatusBadRequest, "EMAIL_EXIST", "Email already registered", err)
+		return apperror.NewFromError(http.StatusConflict, "EMAIL_EXISTS", "Email has been registered", err)
+	case errors.Is(err, domainUser.ErrInvalidCredential):
+		return apperror.NewFromError(http.StatusUnauthorized, "INVALID_CREDENTIAL", "Incorrect email or password", err)
+
+	// --- domain: transaction ---
+
+	// --- domain: auth ---
+	case errors.Is(err, domainAuth.ErrInvalidVerificationCode):
+		return apperror.NewFromError(http.StatusBadRequest, "INVALID_VERIFICATION_CODE", "Invalid verification code", err)
+
+	// --- infrastructure: mail ---
+	case errors.Is(err, mail.ErrMissingSMTPCredentials),
+		errors.Is(err, mail.ErrBuildEmailBody),
+		errors.Is(err, mail.ErrSendMail):
+		return apperror.NewFromError(http.StatusInternalServerError, "MAIL_ERROR", "Failed to send verification email", err)
+
 	default:
 		return nil
 	}
