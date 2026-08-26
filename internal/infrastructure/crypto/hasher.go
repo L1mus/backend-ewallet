@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	apperror "github.com/L1mus/backend-ewallet/internal/AppError"
-	"github.com/L1mus/backend-ewallet/internal/domain/auth"
 	domainUser "github.com/L1mus/backend-ewallet/internal/domain/user"
 	"golang.org/x/crypto/argon2"
 )
@@ -21,7 +20,7 @@ const (
 	MiB                     // 1048576 Bytes (Mebibyte)
 )
 
-type argon2idHasher struct {
+type Argon2idHasher struct {
 	MemorySize  uint32
 	Iterations  uint32
 	Parallelism uint8
@@ -29,8 +28,8 @@ type argon2idHasher struct {
 	SaltLen     uint32
 }
 
-func NewArgon2idHasher(memory, iteration, keyLen, saltLen uint32, parallelism uint8) auth.HasherPassword {
-	return &argon2idHasher{
+func NewArgon2idHasher(memory, iteration, keyLen, saltLen uint32, parallelism uint8) *Argon2idHasher {
+	return &Argon2idHasher{
 		MemorySize:  memory,
 		Iterations:  iteration,
 		Parallelism: parallelism,
@@ -40,7 +39,7 @@ func NewArgon2idHasher(memory, iteration, keyLen, saltLen uint32, parallelism ui
 }
 
 // base on OWASP recommendation
-func (a *argon2idHasher) useRecommendation() {
+func (a *Argon2idHasher) useRecommendation() {
 	a.MemorySize = 65536 * KiB
 	a.Iterations = 1
 	a.Parallelism = 1
@@ -48,7 +47,7 @@ func (a *argon2idHasher) useRecommendation() {
 	a.SaltLen = 16
 }
 
-func (a *argon2idHasher) Generate(password string) string {
+func (a *Argon2idHasher) Generate(password string) string {
 	salt := a.genSalt()
 	key := argon2.IDKey([]byte(password), salt, a.Iterations, a.MemorySize, a.Parallelism, a.KeyLen)
 	const version int8 = 19
@@ -59,7 +58,7 @@ func (a *argon2idHasher) Generate(password string) string {
 	return fmt.Sprintf("$argon2id$v=%d$m=%d,t=%d,p=%d$%s$%s", version, a.MemorySize, a.Iterations, a.Parallelism, encodedSalt, encodedKey)
 }
 
-func (a *argon2idHasher) Compare(hash, password string) error {
+func (a *Argon2idHasher) Compare(hash, password string) error {
 	splitHashPassword := strings.Split(hash, "$")
 	if len(splitHashPassword) < 6 {
 		return apperror.NewFromError(http.StatusInternalServerError, "INVALID_FORMAT", "internal server error", errors.New("array length after splitting is less than 5"))
@@ -109,7 +108,7 @@ func (a *argon2idHasher) Compare(hash, password string) error {
 	return nil
 }
 
-func (a *argon2idHasher) genSalt() []byte {
+func (a *Argon2idHasher) genSalt() []byte {
 	salt := make([]byte, 16)
 	_, _ = rand.Read(salt)
 	return salt
