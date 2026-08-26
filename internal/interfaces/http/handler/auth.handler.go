@@ -3,7 +3,10 @@ package handler
 import (
 	"net/http"
 
+	"github.com/L1mus/backend-ewallet/internal/application/dto"
 	"github.com/L1mus/backend-ewallet/internal/application/usecase"
+	"github.com/L1mus/backend-ewallet/internal/interfaces/request"
+	"github.com/L1mus/backend-ewallet/internal/interfaces/response"
 )
 
 type AuthHandler struct {
